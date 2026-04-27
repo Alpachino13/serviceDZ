@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
 
 const C = {
   walnut:     "#1A1410",
@@ -155,6 +156,7 @@ function SearchBar({ onSearch }) {
 
 // ─── Page principale ───────────────────────────────────────────────────────────
 export default function ServiceDZHome() {
+  const navigate = useNavigate();
   const [pageLoading, setPageLoading] = useState(true);
   const [results, setResults]         = useState(null);   // null = pas encore cherché
   const [isSearching, setIsSearching] = useState(false);
@@ -224,9 +226,24 @@ export default function ServiceDZHome() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }} aria-label="Se connecter">Connexion</button>
-            <button style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }} aria-label="Créer un compte">Inscription</button>
-          </div>
+          {/* Bouton Connexion */}
+          <button 
+          onClick={() => navigate('/login')} 
+    style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }} 
+    aria-label="Se connecter"
+            >
+    Connexion
+  </button>
+
+  {/* Bouton Inscription (qui mène aussi au login en mode register) */}
+  <button 
+    onClick={() => navigate('/login')} 
+    style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }} 
+    aria-label="Créer un compte"
+  >
+    Inscription
+  </button>
+</div>
         </motion.nav>
 
         {/* Hero */}
