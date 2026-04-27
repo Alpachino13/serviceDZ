@@ -312,6 +312,32 @@ function SearchBar({ onSearch }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ServiceDZHome() {
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSearch = async (queryValue) => {
+    const term = queryValue || searchQuery;
+    if (!term.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL;
+      const response = await fetch(`${apiUrl}/api/recherche?q=${encodeURIComponent(term)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // Le header magique
+        }
+      });
+
+      const data = await response.json();
+      setResults(data);
+    } catch (error) {
+      console.error("Erreur:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1800);
@@ -516,7 +542,75 @@ export default function ServiceDZHome() {
             une intervention rapide en Algérie.
           </motion.p>
 
-          <SearchBar />
+          <SearchBar onSearch={handleSearch} />
+
+          {/* --- SECTION DES RÉSULTATS --- */}
+<section style={{ maxWidth: 800, margin: "40px auto", padding: "0 20px" }}>
+  
+  {/* 1. État de chargement */}
+  {isLoading && (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }}
+      style={{ textAlign: "center", color: C.electric, padding: 20 }}
+    >
+      <p>Recherche des meilleurs réparateurs en cours...</p>
+    </motion.div>
+  )}
+
+  {/* 2. Liste des résultats */}
+  <div style={{ display: "grid", gap: "16px" }}>
+    <AnimatePresence>
+      {results.map((reparateur, idx) => (
+        <motion.div
+          key={reparateur._id || idx}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ delay: idx * 0.1 }}
+          style={{
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            borderRadius: 16,
+            padding: "20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
+          <div>
+            <h3 style={{ margin: "0 0 4px 0", color: C.text, fontSize: 18 }}>
+              {reparateur.nom}
+            </h3>
+            <p style={{ margin: 0, color: C.muted, fontSize: 14 }}>
+              <span style={{ color: C.electric }}>{reparateur.specialite}</span> • {reparateur.wilaya}
+            </p>
+          </div>
+          
+          <button style={{
+            background: "transparent",
+            border: `1px solid ${C.electric}`,
+            color: C.electric,
+            padding: "8px 16px",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 13,
+            fontWeight: 600
+          }}>
+            Voir le profil
+          </button>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  </div>
+
+  {/* 3. Message si aucun résultat */}
+  {!isLoading && results.length === 0 && searchQuery && (
+    <div style={{ textAlign: "center", color: C.muted, marginTop: 40 }}>
+      <p>Désolé, aucun réparateur ne correspond à "{searchQuery}" pour le moment.</p>
+    </div>
+  )}
+</section>
 
           <motion.p
             initial={{ opacity: 0 }}
