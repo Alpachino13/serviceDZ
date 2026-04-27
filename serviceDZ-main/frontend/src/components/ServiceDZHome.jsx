@@ -194,9 +194,16 @@ function ExpertCard({ expert, index }) {
 }
 
 // ─── Search Bar ───────────────────────────────────────────────────────────────
-function SearchBar() {
+function SearchBar({ onSearch }) {
   const [query, setQuery]     = useState("");
   const [focused, setFocused] = useState(false);
+
+  // Permet de lancer la recherche avec la touche "Entrée"
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      onSearch(query);
+    }
+  };
 
   return (
     <motion.div
@@ -236,6 +243,7 @@ function SearchBar() {
             onChange={e => setQuery(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
+            onKeyDown={handleKeyDown} // Déclenchement sur Entrée
             autoComplete="off"
             style={{
               flex: 1,
@@ -279,6 +287,7 @@ function SearchBar() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            onClick={() => onSearch(query)} // Déclenchement au clic
             aria-label="Lancer la recherche"
             style={{
               all: "unset",
@@ -300,7 +309,6 @@ function SearchBar() {
     </motion.div>
   );
 }
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ServiceDZHome() {
   const [loading, setLoading] = useState(true);
