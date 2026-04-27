@@ -166,7 +166,9 @@ export default function LoginPage() {
     setGlobalError("");
     setSuccessMsg("");
 
-    const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+    // Utilise VITE_API_URL si tu es sous Vite, sinon REACT_APP_API_URL
+    const apiUrl = (process.env.REACT_APP_API_URL || process.env.VITE_API_URL || "").replace(/\/$/, "");
+    
     const endpoints = {
       login:    "/api/auth/login",
       register: "/api/auth/register",
@@ -182,11 +184,13 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${apiUrl}${endpoints[mode]}`, {
         method: "POST",
-        headers:{
-      "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "true"},
+        headers: { 
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true" // <--- INDISPENSABLE POUR NGROK
+        },
         body: JSON.stringify(body),
       });
+      
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || `Erreur HTTP ${res.status}`);
 
@@ -198,7 +202,7 @@ export default function LoginPage() {
         setSuccessMsg("Compte créé ! Vous pouvez maintenant vous connecter.");
         setTimeout(() => setMode("login"), 1800);
       } else {
-        setSuccessMsg("Un lien de réinitialisation a été envoyé à votre adresse e-mail.");
+        setSuccessMsg("Un lien de réinitialisation a été envoyé.");
       }
     } catch (err) {
       setGlobalError(err.message);
