@@ -200,6 +200,15 @@ export default function ClientDashboard() {
   const [active, setActive]   = useState("overview");
   const [loading, setLoading] = useState(true);
   const [data, setData]       = useState(null);
+  const location = useLocation();
+  const initialQuery = location.state?.query;
+
+  useEffect(() => {
+  if (initialQuery) {
+    // Lance ton fetch ici avec la query reçue de l'accueil
+    triggerSearch(initialQuery);
+  }
+}, [initialQuery]);
 
   // Mock data — remplace par fetch API réel
   useEffect(() => {

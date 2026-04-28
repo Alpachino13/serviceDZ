@@ -172,45 +172,22 @@ export default function ServiceDZHome() {
   }, []);
   const handlePortalClick = () => {
     if (isAuthenticated) {
-      // On envoie vers /dashboard (le point de contrôle dans App.js)
       navigate("/dashboard");
     } else {
-      // Sinon, vers la page de login
       navigate("/login");
     }
   };
 
   // FIX : handleSearch est défini ici et passé à <SearchBar onSearch={handleSearch} />
-  const handleSearch = async (query) => {
-    setSearchQuery(query);
-    setIsSearching(true);
-    setResults(null);
-    setSearchError("");
-    navigate("/dashboard", { state: { query } });
-    const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+const handleSearch = (query) => {
+    if (!query || !query.trim()) return;
     
-    try {
-      const res = await fetch(
-        `${apiUrl}/api/recherche?q=${encodeURIComponent(query)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiUrl.includes("ngrok") && { "ngrok-skip-browser-warning": "true" }),
-          },
-        }
-      );
-      if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-      const data = await res.json();
-      // Accepte un tableau direct OU { results: [...] }
-      setResults(Array.isArray(data) ? data : (data.results ?? []));
-    } catch (err) {
-      console.error("Erreur recherche :", err);
-      setSearchError(err.message);
-      setResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+    // On met à jour l'état local pour l'UI de l'accueil (optionnel)
+    setSearchQuery(query);
+    
+    // On redirige vers le dashboard en passant la requête dans l'URL ou le state
+    // Le composant RoleRoute ou le Dashboard récupérera cette query pour lancer le fetch
+    navigate("/dashboard", { state: { query: query.trim() } });
   };
 
   const clearSearch = () => { setSearchQuery(""); setResults(null); setSearchError(""); };
