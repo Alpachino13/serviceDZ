@@ -164,11 +164,21 @@ export default function ServiceDZHome() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState("");
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
 
   useEffect(() => {
     const t = setTimeout(() => setPageLoading(false), 1200);
     return () => clearTimeout(t);
   }, []);
+  const handlePortalClick = () => {
+    if (isAuthenticated) {
+      // On envoie vers /dashboard (le point de contrôle dans App.js)
+      navigate("/dashboard");
+    } else {
+      // Sinon, vers la page de login
+      navigate("/login");
+    }
+  };
 
   // FIX : handleSearch est défini ici et passé à <SearchBar onSearch={handleSearch} />
   const handleSearch = async (query) => {
@@ -213,27 +223,32 @@ export default function ServiceDZHome() {
 
       <div style={{ position: "relative", zIndex: 1 }}>
 
-        {/* Nav */}
+       {/* Nav */}
         <motion.nav initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           role="navigation" aria-label="Navigation principale"
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 40px", borderBottom: `1px solid ${C.border}` }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => navigate("/")}>
             <div aria-hidden="true" style={{ width: 28, height: 28, borderRadius: 8, background: C.electric, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>⚙</div>
             <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em" }}>Service<span style={{ color: C.electric }}>DZ</span></span>
           </div>
+          
           <div style={{ display: "flex", gap: 32 }}>
             {["Services", "Réparateurs", "Comment ça marche"].map(item => (
               <a key={item} href="#" style={{ fontSize: 13, color: C.muted, textDecoration: "none" }} onMouseEnter={e => e.target.style.color = C.text} onMouseLeave={e => e.target.style.color = C.muted}>{item}</a>
             ))}
           </div>
+
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             {isLoading ? (
               <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.2)", borderTop: `2px solid ${C.electric}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
             ) : isAuthenticated ? (
               <>
-                {/* Avatar + nom */}
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9 }}>
+                {/* Avatar + nom - CLIC vers Dashboard pour vérification de rôle */}
+                <div 
+                  onClick={() => navigate("/dashboard")}
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, cursor: "pointer" }}
+                >
                   {user?.picture ? (
                     <img src={user.picture} alt={user.name} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }} />
                   ) : (
@@ -242,10 +257,10 @@ export default function ServiceDZHome() {
                     </div>
                   )}
                   <span style={{ fontSize: 13, color: C.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {user?.name || user?.email}
+                    {user?.name?.split(" ")[0] || "Mon Profil"}
                   </span>
                 </div>
-                {/* Déconnexion */}
+                
                 <button
                   onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.muted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9, transition: "all 0.2s" }}
@@ -259,14 +274,14 @@ export default function ServiceDZHome() {
             ) : (
               <>
                 <button
-                  onClick={() => loginWithRedirect()}
+                  onClick={() => navigate("/login")} // Redirige vers ta page LoginPage.jsx
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }}
                   aria-label="Se connecter"
                 >
                   Connexion
                 </button>
                 <button
-                  onClick={() => loginWithRedirect({ authorizationParams: { screen_hint: "signup" } })}
+                  onClick={() => navigate("/login")} // Inscription gérée dans ta page Login
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }}
                   aria-label="Créer un compte"
                 >
@@ -297,8 +312,10 @@ export default function ServiceDZHome() {
             Des artisans vérifiés, des tarifs transparents, une intervention rapide en Algérie.
           </motion.p>
 
-          {/* FIX clé : onSearch={handleSearch} branché ici */}
-          <SearchBar onSearch={handleSearch} />
+          {/* Branchement de la SearchBar */}
+          <div style={{ maxWidth: 600, margin: "0 auto" }}>
+            <SearchBar onSearch={handleSearch} />
+          </div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ marginTop: 16, fontSize: 12, color: C.muted }}>
             Suggestions :{" "}
