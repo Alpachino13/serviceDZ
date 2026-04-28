@@ -27,7 +27,7 @@ const auth0 = {
         password,
         client_id: AUTH0_CLIENT_ID,
         connection: AUTH0_CONNECTION,
-        audience: AUTH0_AUDIENCE,
+        audience: (AUTH0_AUDIENCE && { audience: AUTH0_AUDIENCE }),
         scope: "openid profile email",
       }),
     });
