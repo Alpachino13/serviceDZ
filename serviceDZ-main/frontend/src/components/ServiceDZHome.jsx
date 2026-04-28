@@ -179,16 +179,13 @@ export default function ServiceDZHome() {
   };
 
   // FIX : handleSearch est défini ici et passé à <SearchBar onSearch={handleSearch} />
+// Remplace ton handleSearch actuel par celui-ci
 const handleSearch = (query) => {
-    if (!query || !query.trim()) return;
-    
-    // On met à jour l'état local pour l'UI de l'accueil (optionnel)
-    setSearchQuery(query);
-    
-    // On redirige vers le dashboard en passant la requête dans l'URL ou le state
-    // Le composant RoleRoute ou le Dashboard récupérera cette query pour lancer le fetch
-    navigate("/dashboard", { state: { query: query.trim() } });
-  };
+  if (!query || !query.trim()) return;
+  
+  // On ne fait PAS le fetch ici, on délègue au Dashboard
+  navigate("/dashboard", { state: { search: query.trim() } });
+};
 
   const clearSearch = () => { setSearchQuery(""); setResults(null); setSearchError(""); };
 

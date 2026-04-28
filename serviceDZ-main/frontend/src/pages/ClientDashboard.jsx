@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const C = {
   walnut:     "#1A1410",
@@ -204,12 +205,27 @@ export default function ClientDashboard() {
   const initialQuery = location.state?.query;
 
   useEffect(() => {
-  if (initialQuery) {
-    // Lance ton fetch ici avec la query reçue de l'accueil
-    triggerSearch(initialQuery);
+  // Si on arrive de l'accueil avec une recherche
+  if (location.state?.search) {
+    triggerSearch(location.state.search);
   }
-}, [initialQuery]);
+}, [location.state]);
 
+const triggerSearch = async (query) => {
+  setIsSearching(true);
+  try {
+    const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+    const res = await fetch(`${apiUrl}/api/recherche?q=${encodeURIComponent(query)}`, {
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
+    const data = await res.json();
+    setResults(Array.isArray(data) ? data : (data.results ?? []));
+  } catch (err) {
+    console.error("Erreur:", err);
+  } finally {
+    setIsSearching(false);
+  }
+};
   // Mock data — remplace par fetch API réel
   useEffect(() => {
     const t = setTimeout(() => {
