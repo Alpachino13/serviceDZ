@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useAuth0 } from "@auth0/auth0-react";
 // On remonte au bon dossier 'components'
 import ServiceDZHome from './components/ServiceDZHome.jsx';
-import LoginPage from "./pages/LoginPage";
+// Remplace l'ancien import par celui-ci :
+import LoginPage from './components/LoginPage.jsx';
 import RoleSelection from "./pages/RoleSelection";
 import ClientDashboard from "./pages/ClientDashboard";
 import ArtisanDashboard from "./pages/ArtisanDashboard";
