@@ -186,9 +186,9 @@ export default function ServiceDZHome() {
     setIsSearching(true);
     setResults(null);
     setSearchError("");
-
+    navigate("/dashboard", { state: { query } });
     const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
-
+    
     try {
       const res = await fetch(
         `${apiUrl}/api/recherche?q=${encodeURIComponent(query)}`,
@@ -232,7 +232,7 @@ export default function ServiceDZHome() {
             <div aria-hidden="true" style={{ width: 28, height: 28, borderRadius: 8, background: C.electric, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>⚙</div>
             <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em" }}>Service<span style={{ color: C.electric }}>DZ</span></span>
           </div>
-          
+
           <div style={{ display: "flex", gap: 32 }}>
             {["Services", "Réparateurs", "Comment ça marche"].map(item => (
               <a key={item} href="#" style={{ fontSize: 13, color: C.muted, textDecoration: "none" }} onMouseEnter={e => e.target.style.color = C.text} onMouseLeave={e => e.target.style.color = C.muted}>{item}</a>
@@ -244,7 +244,7 @@ export default function ServiceDZHome() {
               <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.2)", borderTop: `2px solid ${C.electric}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
             ) : isAuthenticated ? (
               <>
-                {/* Avatar + nom - CLIC vers Dashboard pour vérification de rôle */}
+                {/* Avatar + nom -> CLIC vers /dashboard */}
                 <div 
                   onClick={() => navigate("/dashboard")}
                   style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, cursor: "pointer" }}
@@ -257,10 +257,10 @@ export default function ServiceDZHome() {
                     </div>
                   )}
                   <span style={{ fontSize: 13, color: C.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {user?.name?.split(" ")[0] || "Mon Profil"}
+                    {user?.name || user?.email}
                   </span>
                 </div>
-                
+
                 <button
                   onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.muted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9, transition: "all 0.2s" }}
@@ -274,14 +274,14 @@ export default function ServiceDZHome() {
             ) : (
               <>
                 <button
-                  onClick={() => navigate("/login")} // Redirige vers ta page LoginPage.jsx
+                  onClick={() => navigate("/login")}
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }}
                   aria-label="Se connecter"
                 >
                   Connexion
                 </button>
                 <button
-                  onClick={() => navigate("/login")} // Inscription gérée dans ta page Login
+                  onClick={() => navigate("/login")}
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }}
                   aria-label="Créer un compte"
                 >
