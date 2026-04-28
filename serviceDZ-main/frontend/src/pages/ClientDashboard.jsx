@@ -203,7 +203,8 @@ export default function ClientDashboard() {
   const [data, setData]       = useState(null);
   const location = useLocation();
   const initialQuery = location.state?.query;
-
+  const [isSearching, setIsSearching] = useState(false);
+  const [results, setResults] = useState([]);
   useEffect(() => {
   // Si on arrive de l'accueil avec une recherche
   if (location.state?.search) {

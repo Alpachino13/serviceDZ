@@ -164,7 +164,6 @@ export default function ServiceDZHome() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState("");
-  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
 
   useEffect(() => {
     const t = setTimeout(() => setPageLoading(false), 1200);
