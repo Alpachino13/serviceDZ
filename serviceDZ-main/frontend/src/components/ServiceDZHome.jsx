@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from "@auth0/auth0-react";
 
 const C = {
   walnut:     "#1A1410",
@@ -157,6 +158,7 @@ function SearchBar({ onSearch }) {
 // ─── Page principale ───────────────────────────────────────────────────────────
 export default function ServiceDZHome() {
   const navigate = useNavigate();
+  const { loginWithRedirect, logout, isAuthenticated, user, isLoading } = useAuth0();
   const [pageLoading, setPageLoading] = useState(true);
   const [results, setResults]         = useState(null);   // null = pas encore cherché
   const [isSearching, setIsSearching] = useState(false);
@@ -225,25 +227,54 @@ export default function ServiceDZHome() {
               <a key={item} href="#" style={{ fontSize: 13, color: C.muted, textDecoration: "none" }} onMouseEnter={e => e.target.style.color = C.text} onMouseLeave={e => e.target.style.color = C.muted}>{item}</a>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
-          {/* Bouton Connexion */}
-          <button 
-          onClick={() => navigate('/login')} 
-    style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }} 
-    aria-label="Se connecter"
-            >
-    Connexion
-  </button>
-
-  {/* Bouton Inscription (qui mène aussi au login en mode register) */}
-  <button 
-    onClick={() => navigate('/login')} 
-    style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }} 
-    aria-label="Créer un compte"
-  >
-    Inscription
-  </button>
-</div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            {isLoading ? (
+              <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.2)", borderTop: `2px solid ${C.electric}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            ) : isAuthenticated ? (
+              <>
+                {/* Avatar + nom */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9 }}>
+                  {user?.picture ? (
+                    <img src={user.picture} alt={user.name} style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: C.electric, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff" }}>
+                      {(user?.name || user?.email || "U")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 13, color: C.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user?.name || user?.email}
+                  </span>
+                </div>
+                {/* Déconnexion */}
+                <button
+                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                  style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.muted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9, transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#E24B4A50"; e.currentTarget.style.color = "#E24B4A"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
+                  aria-label="Se déconnecter"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => loginWithRedirect()}
+                  style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.textMuted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9 }}
+                  aria-label="Se connecter"
+                >
+                  Connexion
+                </button>
+                <button
+                  onClick={() => loginWithRedirect({ authorizationParams: { screen_hint: "signup" } })}
+                  style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 9 }}
+                  aria-label="Créer un compte"
+                >
+                  Inscription
+                </button>
+              </>
+            )}
+          </div>
         </motion.nav>
 
         {/* Hero */}
