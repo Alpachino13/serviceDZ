@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import ServiceDZHome from "./pages/ServiceDZHome";
+import ServiceDZHome from './pages/ServiceDZHome';
 import LoginPage from "./pages/LoginPage";
 import RoleSelection from "./pages/RoleSelection";
 import ClientDashboard from "./pages/ClientDashboard";
