@@ -14,7 +14,7 @@ function LoadingScreen() {
   return (
     <div style={{ minHeight: "100vh", background: "#1A1410", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ width: 32, height: 32, border: "3px solid rgba(55,138,221,0.2)", borderTop: "3px solid #378ADD", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+        <div style={{ width: 32, height: 32, border: "3px solid rgba(55,138,221,0.2)", borderTop: "3px solid #378ADD", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0", padding: 0 }} />
         <p style={{ color: "#888780", fontSize: 13, fontFamily: "sans-serif" }}>Chargement…</p>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
