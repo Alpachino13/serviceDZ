@@ -1,11 +1,9 @@
 // src/pages/ClientDashboard.jsx
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react'; // Regroupé ici
 import { useAuth0 } from "@auth0/auth0-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from "react-router-dom"; // Regroupé ici aussi
 
 const C = {
   walnut:     "#1A1410",
