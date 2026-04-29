@@ -1,7 +1,7 @@
 // src/pages/ClientDashboard.jsx
 
 import React, { useState, useEffect } from 'react'; // Regroupé ici
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom"; // Regroupé ici aussi
 
@@ -105,7 +105,7 @@ function Sidebar({ active, setActive, user, logout }) {
             <p style={{ margin: "2px 0 0", fontSize: 11, color: C.muted }}>Client</p>
           </div>
         </div>
-        <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+        <button onClick={() => logout({ logoutParams: { returnTo: "/" } })}
           style={{ all: "unset", cursor: "pointer", width: "100%", boxSizing: "border-box", textAlign: "center", padding: "8px", borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, color: C.muted, transition: "all 0.2s" }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = "#E24B4A50"; e.currentTarget.style.color = C.danger; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
@@ -196,7 +196,7 @@ function FavoriteCard({ artisan, index }) {
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function ClientDashboard() {
-const { user, logout } = useAuth0();
+const { user, logout } = useAuth();
   const [active, setActive] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ stats: [], repairs: [], favorites: [] });

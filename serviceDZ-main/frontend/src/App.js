@@ -1,14 +1,15 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useUserRole } from './hooks/useUserRole'
-// Tes composants
-import ServiceDZHome from './components/ServiceDZHome.jsx';
-import LoginPage from './components/LoginPage.jsx';
-import RoleSelection from "./pages/RoleSelection";
-import ClientDashboard from "./pages/ClientDashboard";
-import ArtisanDashboard from "./pages/ArtisanDashboard";
+// src/App.js
 
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { getToken, getStoredUser } from './hooks/useAuth';
+import ServiceDZHome    from './components/ServiceDZHome';
+import LoginPage        from './components/LoginPage';
+import RoleSelection    from './pages/RoleSelection';
+import ClientDashboard  from './pages/ClientDashboard';
+import ArtisanDashboard from './pages/ArtisanDashboard';
+
+// ─── Loading screen ────────────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
     <div style={{ minHeight: "100vh", background: "#1A1410", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -22,91 +23,66 @@ function LoadingScreen() {
 }
 
 // ─── Route protégée ────────────────────────────────────────────────────────────
+// Vérifie simplement si un token JWT existe dans localStorage
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
-  if (isLoading) return <LoadingScreen />;
-  if (!isAuthenticated) { loginWithRedirect(); return null; }
-  return children;
-}
+  const token = getToken();
+  const user  = getStoredUser();
 
-// ─── Redirection selon rôle en DB ─────────────────────────────────────────────
-function RoleRoute() {
-  const { isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-  const [checking, setChecking] = React.useState(true);
-  const [role, setRole]         = React.useState(null);
-
-  React.useEffect(() => {
-    if (!isAuthenticated || isLoading) return;
-    const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
-    (async () => {
-      try {
-        const token = await getAccessTokenSilently();
-        const res   = await fetch(`${apiUrl}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = res.ok ? await res.json() : {};
-        setRole(data.role || null);
-      } catch { setRole(null); }
-      finally  { setChecking(false); }
-    })();
-  }, [isAuthenticated, isLoading]);
-
-  if (isLoading || checking) return <LoadingScreen />;
-  if (!isAuthenticated)      return <Navigate to="/login" replace />;
-  if (!role)                 return <RoleSelection />;
-  // Change "artisan" par "worker" pour correspondre à ton schéma MongoDB
-  if (role === "client") return <Navigate to="/dashboard/client" replace />;
-  if (role === "worker") return <Navigate to="/dashboard/artisan" replace />;
-  return <Navigate to="/" replace />;
-}
-
-function RequireRole({ children, expectedRole, userRole }) {
-  if (userRole !== expectedRole) {
-    // Si un artisan essaie d'aller chez le client (ou inversement), on le renvoie à la racine
-    return <Navigate to="/" replace />;
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
   }
   return children;
 }
 
+// ─── Redirection selon rôle ────────────────────────────────────────────────────
+// Lit le rôle depuis le user stocké en localStorage (mis à jour au login)
+function RoleRoute() {
+  const token = getToken();
+  const user  = getStoredUser();
+
+  if (!token || !user) return <Navigate to="/login" replace />;
+
+  const role = user?.role;
+
+  if (!role)              return <Navigate to="/role"              replace />;
+  if (role === "client")  return <Navigate to="/dashboard/client"  replace />;
+  if (role === "artisan" || role === "worker")
+                          return <Navigate to="/dashboard/artisan" replace />;
+
+  return <Navigate to="/" replace />;
+}
+
 function App() {
-  const { role, isLoading, isAuthenticated } = useUserRole();
-  if (isLoading) return <LoadingScreen />;
-
   return (
-    <Routes>
-      {/* 1. Page d'accueil publique */}
-      <Route path="/" element={<ServiceDZHome />} />
+    <Router>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <Routes>
 
-      {/* 2. Route de décision (ton composant RoleRoute) */}
-      <Route path="/check-role" element={<RoleRoute />} />
+        {/* ── Pages publiques ── */}
+        <Route path="/"      element={<ServiceDZHome />} />
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* 3. Dashboard CLIENT - Sécurisé par Auth + Rôle */}
-      <Route
-        path="/dashboard/client/*" 
-        element={
-          <ProtectedRoute>
-            <RequireRole expectedRole="client" userRole={role}>
-              <ClientDashboard />
-            </RequireRole>
-          </ProtectedRoute>
-        } 
-      />
+        {/* ── Sélection de rôle (après inscription) ── */}
+        <Route path="/role" element={
+          <ProtectedRoute><RoleSelection /></ProtectedRoute>
+        } />
 
-      {/* 4. Dashboard ARTISAN (Worker) - Sécurisé par Auth + Rôle */}
-      <Route 
-        path="/dashboard/artisan/*" 
-        element={
-          <ProtectedRoute>
-            <RequireRole expectedRole="worker" userRole={role}>
-              <ArtisanDashboard />
-            </RequireRole>
-          </ProtectedRoute>
-        } 
-      />
+        {/* ── Auto-redirect selon rôle ── */}
+        <Route path="/dashboard" element={<RoleRoute />} />
 
-      {/* Redirection par défaut */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+        {/* ── Dashboards protégés ── */}
+        <Route path="/dashboard/client" element={
+          <ProtectedRoute><ClientDashboard /></ProtectedRoute>
+        } />
+        <Route path="/dashboard/artisan" element={
+          <ProtectedRoute><ArtisanDashboard /></ProtectedRoute>
+        } />
+
+        {/* ── 404 ── */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+      </Routes>
+    </Router>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../hooks/useAuth";
 
 const C = {
   walnut:     "#1A1410",
@@ -158,7 +158,7 @@ function SearchBar({ onSearch }) {
 // ─── Page principale ───────────────────────────────────────────────────────────
 export default function ServiceDZHome() {
   const navigate = useNavigate();
-  const { loginWithRedirect, logout, isAuthenticated, user, isLoading } = useAuth0();
+  const { loginWithRedirect, logout, isAuthenticated, user, isLoading } = useAuth();
   const [pageLoading, setPageLoading] = useState(true);
   const [results, setResults]         = useState(null);   // null = pas encore cherché
   const [isSearching, setIsSearching] = useState(false);
@@ -235,7 +235,7 @@ const handleSearch = (query) => {
                 </div>
 
                 <button
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                  onClick={() => logout({ logoutParams: { returnTo: "/" } })}
                   style={{ all: "unset", cursor: "pointer", fontSize: 13, color: C.muted, padding: "8px 16px", border: `1px solid ${C.border}`, borderRadius: 9, transition: "all 0.2s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "#E24B4A50"; e.currentTarget.style.color = "#E24B4A"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
