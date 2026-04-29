@@ -436,22 +436,56 @@ export default function ArtisanDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", fontFamily: F, color: C.text }}>
       <Sidebar active={active} setActive={setActive} user={user} logout={logout} />
-      <main style={{ flex: 1, padding: "28px 36px", overflowY: "auto", minWidth: 0 }}>
-        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
-          <h1 style={{ margin: "0 0 3px", fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", fontFamily: F }}>
-            Bonjour, {user?.name?.split(" ")[0] || "là"} 🔧
-          </h1>
-          <p style={{ margin: 0, fontSize: 12, color: C.muted, fontFamily: F }}>
-            {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
-        </motion.div>
+      <main 
+  style={{ 
+    flex: 1, 
+    // On utilise clamp pour un padding qui réduit sur mobile (16px) et s'étend sur PC (36px)
+    padding: "clamp(16px, 4vw, 36px)", 
+    overflowY: "auto", 
+    minWidth: 0,
+    width: "100%", // Assure que le contenu prend toute la largeur dispo
+    background: "transparent", // Évite tout conflit de couleur de fond
+    boxSizing: "border-box" // Crucial pour que le padding ne dépasse pas
+  }}
+>
+  <motion.div 
+    initial={{ opacity: 0, y: -6 }} 
+    animate={{ opacity: 1, y: 0 }} 
+    style={{ marginBottom: 28 }}
+  >
+    <h1 style={{ 
+      margin: "0 0 3px", 
+      // Taille de police fluide : entre 18px et 22px
+      fontSize: "clamp(18px, 5vw, 22px)", 
+      fontWeight: 700, 
+      letterSpacing: "-0.02em", 
+      fontFamily: F 
+    }}>
+      Bonjour, {user?.name?.split(" ")[0] || "là"} 🔧
+    </h1>
+    <p style={{ 
+      margin: 0, 
+      fontSize: "clamp(11px, 3vw, 12px)", 
+      color: C.muted, 
+      fontFamily: F 
+    }}>
+      {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+    </p>
+  </motion.div>
 
-        <AnimatePresence mode="wait">
-          <motion.div key={active} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
-            {renderContent()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+  <AnimatePresence mode="wait">
+    <motion.div 
+      key={active} 
+      initial={{ opacity: 0, y: 8 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -8 }} 
+      transition={{ duration: 0.18 }}
+      style={{ width: "100%" }} // Force le contenu à remplir la largeur
+    >
+      {renderContent()}
+    </motion.div>
+  </AnimatePresence>
+</main>
     </div>
   );
 }
