@@ -1,4 +1,3 @@
-// src/pages/ClientDashboard.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,30 +46,24 @@ function Skeleton() {
   );
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-const NAV = [
-  { id: "overview",  icon: "⊞", label: "Vue d'ensemble" },
-  { id: "repairs",   icon: "🔧", label: "Mes demandes" },
-  { id: "history",   icon: "📋", label: "Historique" },
-  { id: "favorites", icon: "♥",  label: "Artisans favoris" },
-  { id: "settings",  icon: "⚙",  label: "Paramètres" },
-];
-
 function Sidebar({ active, setActive, user, logout }) {
   const navigate = useNavigate();
   return (
     <aside style={{ width: 224, background: C.sidebar, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", minHeight: "100vh", flexShrink: 0 }}>
-      {/* Logo */}
       <div style={{ padding: "20px 16px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer" }} onClick={() => navigate("/")}>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <div style={{ width: 26, height: 26, borderRadius: 7, background: C.electric, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>⚙</div>
           <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", fontFamily: F }}>Service<span style={{ color: C.electric }}>DZ</span></span>
         </div>
       </div>
-
-      {/* Nav */}
       <nav style={{ flex: 1, padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-        {NAV.map(item => (
+        {[
+          { id: "overview",  icon: "⊞", label: "Vue d'ensemble" },
+          { id: "repairs",   icon: "🔧", label: "Mes demandes" },
+          { id: "history",   icon: "📋", label: "Historique" },
+          { id: "favorites", icon: "♥",  label: "Artisans disponibles" },
+          { id: "settings",  icon: "⚙",  label: "Paramètres" }
+        ].map(item => (
           <button key={item.id} onClick={() => setActive(item.id)}
             style={{ all: "unset", cursor: "pointer", display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, background: active === item.id ? `${C.electric}15` : "transparent", color: active === item.id ? C.electric : C.muted, fontSize: 13, fontWeight: active === item.id ? 600 : 400, transition: "all 0.15s", fontFamily: F }}
             onMouseEnter={e => { if (active !== item.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = C.text; }}
@@ -81,8 +74,6 @@ function Sidebar({ active, setActive, user, logout }) {
           </button>
         ))}
       </nav>
-
-      {/* User */}
       <div style={{ padding: "12px 16px 16px", borderTop: `1px solid ${C.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${C.electric}25`, border: `1px solid ${C.electric}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: C.electric, flexShrink: 0 }}>
@@ -95,15 +86,12 @@ function Sidebar({ active, setActive, user, logout }) {
         </div>
         <button onClick={() => logout({ logoutParams: { returnTo: "/" } })}
           style={{ all: "unset", cursor: "pointer", width: "100%", boxSizing: "border-box", textAlign: "center", padding: "7px", borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12, color: C.muted, fontFamily: F, transition: "all 0.15s" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = `${C.danger}50`; e.currentTarget.style.color = C.danger; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
         >Déconnexion</button>
       </div>
     </aside>
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ icon, label, value, color, i }) {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -119,7 +107,6 @@ function StatCard({ icon, label, value, color, i }) {
   );
 }
 
-// ─── Repair Card ──────────────────────────────────────────────────────────────
 function RepairCard({ r, i }) {
   const [hov, setHov] = useState(false);
   return (
@@ -143,14 +130,15 @@ function RepairCard({ r, i }) {
             <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: C.text, fontFamily: F }}>{r.artisan.name}</p>
             <p style={{ margin: 0, fontSize: 11, color: C.muted, fontFamily: F }}>{r.artisan.specialty}</p>
           </div>
-          {r.artisan.rating && <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: C.warning, fontFamily: F }}>★ {r.artisan.rating}</span>}
+          {r.artisan.rating && <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: C.warning, fontFamily: F }}>
+            {r.artisan.rating === "Nouveau" ? "Nouveau" : `★ ${r.artisan.rating}`}
+          </span>}
         </div>
       )}
     </motion.div>
   );
 }
 
-// ─── Artisan Card ─────────────────────────────────────────────────────────────
 function ArtisanCard({ a, i }) {
   const [hov, setHov] = useState(false);
   return (
@@ -165,7 +153,9 @@ function ArtisanCard({ a, i }) {
         <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: C.text, fontFamily: F }}>{a.name}</p>
         <p style={{ margin: "0 0 6px", fontSize: 11, color: C.muted, fontFamily: F }}>{a.specialty}</p>
         <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: C.warning, fontFamily: F }}>★ {a.rating}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: C.warning, fontFamily: F }}>
+            {a.rating === "Nouveau" ? "Nouveau" : `★ ${a.rating}`}
+          </span>
           <span style={{ fontSize: 11, color: C.muted, fontFamily: F }}>{a.jobs} missions</span>
         </div>
       </div>
@@ -176,7 +166,6 @@ function ArtisanCard({ a, i }) {
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ClientDashboard() {
   const { user, logout }  = useAuth();
   const location          = useLocation();
@@ -186,7 +175,6 @@ export default function ClientDashboard() {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
-  // Recherche depuis HomePage
   useEffect(() => {
     if (location.state?.search) triggerSearch(location.state.search);
   }, [location.state]);
@@ -194,14 +182,31 @@ export default function ClientDashboard() {
   const triggerSearch = async (q) => {
     setSearching(true);
     try {
-      const res = await fetch(`${API}/api/recherche?q=${encodeURIComponent(q)}`, { headers: { "ngrok-skip-browser-warning": "true" } });
-      const d   = await res.json();
-      setSearchResults(Array.isArray(d) ? d : (d.results ?? []));
+      const res = await fetch(`${API}/api/users/workers`, { headers: { "ngrok-skip-browser-warning": "true" } });
+      const dbWorkers = await res.json();
+      
+      const keyword = q.toLowerCase();
+      const filtered = dbWorkers.filter(w => 
+        (w.specialty && w.specialty.toLowerCase().includes(keyword)) ||
+        (w.city && w.city.toLowerCase().includes(keyword)) ||
+        (w.name && w.name.toLowerCase().includes(keyword))
+      );
+
+      const COLORS = ["#185FA5", "#0F6E56", "#993C1D", "#7C3AED", "#B45309"];
+      const formatted = filtered.map((w, idx) => ({
+        id: w._id || idx, 
+        name: w.name,
+        initials: w.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "??",
+        specialty: `${w.specialty || "Artisan"} · ${w.city || "Tlemcen"}`,
+        rating: w.rating ? w.rating : "Nouveau",
+        jobs: w.jobs || 0,
+        color: COLORS[idx % COLORS.length],
+      }));
+      setSearchResults(formatted);
     } catch { setSearchResults([]); }
     finally { setSearching(false); }
   };
 
-  // Chargement données
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -209,19 +214,17 @@ export default function ClientDashboard() {
         const token = localStorage.getItem("sdz_token");
         const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }), "ngrok-skip-browser-warning": "true" };
 
-        const [workersRes] = await Promise.all([
-          fetch(`${API}/api/users/workers`, { headers }),
-        ]);
-
+        const workersRes = await fetch(`${API}/api/users/workers`, { headers });
         const workers = workersRes.ok ? await workersRes.json() : [];
         const COLORS = ["#185FA5", "#0F6E56", "#993C1D", "#7C3AED", "#B45309"];
 
         const favorites = workers.map((w, idx) => ({
-          id: w._id, name: w.name,
+          id: w._id || idx, 
+          name: w.name,
           initials: w.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "??",
-          specialty: `${w.specialty || "Artisan"} · ${w.city || "Algérie"}`,
-          rating: w.rating || 4.8,
-          jobs: w.jobsCount || Math.floor(Math.random() * 100) + 10,
+          specialty: `${w.specialty || "Artisan"} · ${w.city || "Tlemcen"}`,
+          rating: w.rating ? w.rating : "Nouveau", // Commence à zéro
+          jobs: w.jobs || 0,                       // Commence à zéro
           color: COLORS[idx % COLORS.length],
         }));
 
@@ -235,14 +238,11 @@ export default function ClientDashboard() {
           repairs: [
             { id: 1, title: "Fuite robinet cuisine",    category: "Plomberie",   date: "Aujourd'hui", status: "active",    artisan: { name: "Karim Bensalem", initials: "KB", specialty: "Plombier",  rating: 4.9, color: "#185FA5" } },
             { id: 2, title: "Panne tableau électrique", category: "Électricité", date: "Hier",        status: "pending",   artisan: null },
-            { id: 3, title: "Peinture salon",           category: "Peinture",    date: "12 avr.",     status: "completed", artisan: { name: "Salim Ouahabi",  initials: "SO", specialty: "Peintre",   rating: 4.7, color: "#D4537E" } },
-            { id: 4, title: "Climatiseur split",        category: "Clim.",       date: "5 avr.",      status: "completed", artisan: { name: "Omar Bouchrit",  initials: "OB", specialty: "Technicien",rating: 5.0, color: "#5DCAA5" } },
           ],
           favorites,
         });
-      } catch (e) {
-        console.error(e);
-      } finally { setLoading(false); }
+      } catch (e) { console.error(e); } 
+      finally { setLoading(false); }
     };
     load();
   }, []);
@@ -253,7 +253,6 @@ export default function ClientDashboard() {
     switch (active) {
       case "overview": return (
         <div>
-          {/* Résultats recherche */}
           {searchResults.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -266,52 +265,37 @@ export default function ClientDashboard() {
               <hr style={{ border: "none", borderTop: `1px solid ${C.border}`, margin: "24px 0" }} />
             </div>
           )}
-
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10, marginBottom: 28 }}>
             {data.stats.map((s, i) => <StatCard key={i} {...s} i={i} />)}
           </div>
-
           <h2 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, color: C.text, fontFamily: F }}>Demandes récentes</h2>
           <div style={{ display: "grid", gap: 8 }}>
             {data.repairs.slice(0, 3).map((r, i) => <RepairCard key={r.id} r={r} i={i} />)}
           </div>
         </div>
       );
-
       case "repairs": return (
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: C.text, fontFamily: F }}>Toutes mes demandes</h2>
-            <button style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 8, fontFamily: F }}>
-              + Nouvelle demande
-            </button>
+            <button style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "8px 16px", background: C.electric, borderRadius: 8, fontFamily: F }}>+ Nouvelle demande</button>
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {data.repairs.map((r, i) => <RepairCard key={r.id} r={r} i={i} />)}
           </div>
         </div>
       );
-
       case "history": return (
         <div>
           <h2 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 600, color: C.text, fontFamily: F }}>Historique des réparations</h2>
-          {/* Filtres */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            {["Tout", "Terminé", "Annulé"].map(f => (
-              <button key={f} style={{ all: "unset", cursor: "pointer", fontSize: 12, padding: "6px 12px", borderRadius: 7, border: `1px solid ${C.border}`, color: C.muted, fontFamily: F }}>
-                {f}
-              </button>
-            ))}
+            {["Tout", "Terminé", "Annulé"].map(f => <button key={f} style={{ all: "unset", cursor: "pointer", fontSize: 12, padding: "6px 12px", borderRadius: 7, border: `1px solid ${C.border}`, color: C.muted, fontFamily: F }}>{f}</button>)}
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {data.repairs.filter(r => r.status === "completed" || r.status === "cancelled").map((r, i) => <RepairCard key={r.id} r={r} i={i} />)}
           </div>
-          {data.repairs.filter(r => r.status === "completed").length === 0 && (
-            <p style={{ color: C.muted, fontSize: 13, fontFamily: F, textAlign: "center", padding: "40px 0" }}>Aucune réparation terminée pour l'instant.</p>
-          )}
         </div>
       );
-
       case "favorites": return (
         <div>
           <h2 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 600, color: C.text, fontFamily: F }}>Artisans disponibles</h2>
@@ -324,7 +308,6 @@ export default function ClientDashboard() {
           </div>
         </div>
       );
-
       case "settings": return (
         <div style={{ maxWidth: 440 }}>
           <h2 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 600, color: C.text, fontFamily: F }}>Paramètres du compte</h2>
@@ -343,12 +326,9 @@ export default function ClientDashboard() {
               />
             </div>
           ))}
-          <button style={{ all: "unset", cursor: "pointer", marginTop: 6, fontSize: 13, fontWeight: 600, color: "#fff", padding: "11px 24px", background: C.electric, borderRadius: 9, fontFamily: F }}>
-            Sauvegarder
-          </button>
+          <button style={{ all: "unset", cursor: "pointer", marginTop: 6, fontSize: 13, fontWeight: 600, color: "#fff", padding: "11px 24px", background: C.electric, borderRadius: 9, fontFamily: F }}>Sauvegarder</button>
         </div>
       );
-
       default: return null;
     }
   };
@@ -356,12 +336,12 @@ export default function ClientDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", fontFamily: F, color: C.text }}>
       <Sidebar active={active} setActive={setActive} user={user} logout={logout} />
-      <main style={{ flex: 1, padding: "28px 36px", overflowY: "auto", minWidth: 0 }}>
+      <main style={{ flex: 1, padding: "clamp(16px, 4vw, 36px)", overflowY: "auto", minWidth: 0, boxSizing: "border-box" }}>
         <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
-          <h1 style={{ margin: "0 0 3px", fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", fontFamily: F }}>
+          <h1 style={{ margin: "0 0 3px", fontSize: "clamp(18px, 5vw, 22px)", fontWeight: 700, letterSpacing: "-0.02em", fontFamily: F }}>
             Bonjour, {user?.name?.split(" ")[0] || "là"} 👋
           </h1>
-          <p style={{ margin: 0, fontSize: 12, color: C.muted, fontFamily: F }}>
+          <p style={{ margin: 0, fontSize: "clamp(11px, 3vw, 12px)", color: C.muted, fontFamily: F }}>
             {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
           </p>
         </motion.div>
