@@ -1,14 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-// On remonte au bon dossier 'components'
+
+// Tes composants
 import ServiceDZHome from './components/ServiceDZHome.jsx';
-// Remplace l'ancien import par celui-ci :
 import LoginPage from './components/LoginPage.jsx';
 import RoleSelection from "./pages/RoleSelection";
 import ClientDashboard from "./pages/ClientDashboard";
 import ArtisanDashboard from "./pages/ArtisanDashboard";
-import { Routes, Route, Navigate } from 'react-router-dom';
 
 function LoadingScreen() {
   return (
