@@ -196,105 +196,132 @@ function FavoriteCard({ artisan, index }) {
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function ClientDashboard() {
-  const { user, logout, getAccessTokenSilently } = useAuth0();
-  const [active, setActive]   = useState("overview");
+const { user, logout } = useAuth0();
+  const [active, setActive] = useState("overview");
   const [loading, setLoading] = useState(true);
- // On garde l'objet data pour la structure, et on ajoute un state dédié aux workers
-const [data, setData] = useState({ stats: [], repairs: [], favorites: [] });
+  const [data, setData] = useState({ stats: [], repairs: [], favorites: [] });
+  
   const location = useLocation();
-  const initialQuery = location.state?.query;
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState([]);
-  useEffect(() => {
-  // Si on arrive de l'accueil avec une recherche
-  if (location.state?.search) {
-    triggerSearch(location.state.search);
-  }
-}, [location.state]);
 
-const triggerSearch = async (query) => {
-  setIsSearching(true);
-  try {
-    const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
-    const res = await fetch(`${apiUrl}/api/recherche?q=${encodeURIComponent(query)}`, {
-      headers: { "ngrok-skip-browser-warning": "true" }
-    });
-    const data = await res.json();
-    setResults(Array.isArray(data) ? data : (data.results ?? []));
-  } catch (err) {
-    console.error("Erreur:", err);
-  } finally {
-    setIsSearching(false);
-  }
-};
-  // Mock data — remplace par fetch API réel
-
-useEffect(() => {
-  const loadDashboardData = async () => {
+  // --- LOGIQUE DE RECHERCHE ---
+  const triggerSearch = async (query) => {
+    setIsSearching(true);
     try {
-      setLoading(true);
       const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
-
-      // 1. Récupération des artisans depuis ton MongoDB (via Ngrok)
-      const response = await fetch(`${apiUrl}/api/users/workers`);
-      const dbWorkers = await response.json();
-
-      // 2. Formatage pour tes cartes (Favoris)
-      const formattedWorkers = dbWorkers.map(w => ({
-        id: w._id,
-        name: w.name,
-        initials: w.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-        specialty: `${w.specialty} · ${w.city}`,
-        rating: w.rating || 5.0,
-        jobs: Math.floor(Math.random() * 50) + 10, // Simulation pour le design
-        color: w.specialty === "Plomberie" ? "#185FA5" : w.specialty === "Électricité" ? "#0F6E56" : "#993C1D"
-      }));
-
-      // 3. Mise à jour globale
-      setData({
-        stats: [
-          { icon: "🔧", label: "Demandes totales", value: "12", color: "#3B82F6" },
-          { icon: "⏳", label: "En cours", value: "3", color: "#F59E0B" },
-          { icon: "✅", label: "Terminées", value: "8", color: "#10B981" },
-          { icon: "⭐", label: "Note moyenne", value: "4.7", color: "#EF9F27" },
-        ],
-        repairs: [
-          // Tu peux garder tes repairs statiques ici pour le moment
-          { id: 1, title: "Fuite robinet cuisine", category: "Plomberie", date: "Aujourd'hui", status: "active", artisan: { name: "Karim Bensalem", initials: "KB", specialty: "Plombier", rating: 4.9, color: "#185FA5" } },
-          { id: 3, title: "Peinture salon", category: "Peinture", date: "12 avril", status: "completed", artisan: { name: "Salim Ouahabi", initials: "SO", specialty: "Peintre", rating: 4.7, color: "#D4537E" } },
-        ],
-        favorites: formattedWorkers // Mohamed, Sofia et Yacine sont ici !
+      const res = await fetch(`${apiUrl}/api/recherche?q=${encodeURIComponent(query)}`, {
+        headers: { "ngrok-skip-browser-warning": "true" }
       });
-
-    } catch (error) {
-      console.error("Erreur de synchronisation :", error);
+      const data = await res.json();
+      setResults(Array.isArray(data) ? data : (data.results ?? []));
+    } catch (err) {
+      console.error("Erreur recherche:", err);
     } finally {
-      setLoading(false);
+      setIsSearching(false);
     }
   };
 
-  loadDashboardData();
-}, []);
+  useEffect(() => {
+    if (location.state?.search) {
+      triggerSearch(location.state.search);
+    }
+  }, [location.state]);
 
+  // --- CHARGEMENT DES DONNÉES (MONGODB) ---
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+
+        const response = await fetch(`${apiUrl}/api/users/workers`, {
+            headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        const dbWorkers = await response.json();
+
+        const formattedWorkers = dbWorkers.map(w => ({
+          id: w._id,
+          name: w.name,
+          initials: w.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+          specialty: `${w.specialty} · ${w.city}`,
+          rating: w.rating || 5.0,
+          jobs: Math.floor(Math.random() * 50) + 10,
+          color: w.specialty === "Plomberie" ? "#185FA5" : w.specialty === "Électricité" ? "#0F6E56" : "#993C1D"
+        }));
+
+        setData({
+          stats: [
+            { icon: "🔧", label: "Demandes totales", value: "12", color: "#3B82F6" },
+            { icon: "⏳", label: "En cours", value: "3", color: "#F59E0B" },
+            { icon: "✅", label: "Terminées", value: "8", color: "#10B981" },
+            { icon: "⭐", label: "Note moyenne", value: "4.7", color: "#EF9F27" },
+          ],
+          repairs: [
+            { id: 1, title: "Fuite robinet cuisine", category: "Plomberie", date: "Aujourd'hui", status: "active", artisan: { name: "Karim Bensalem", initials: "KB", specialty: "Plombier", rating: 4.9, color: "#185FA5" } },
+            { id: 3, title: "Peinture salon", category: "Peinture", date: "12 avril", status: "completed", artisan: { name: "Salim Ouahabi", initials: "SO", specialty: "Peintre", rating: 4.7, color: "#D4537E" } },
+          ],
+          favorites: formattedWorkers 
+        });
+      } catch (error) {
+        console.error("Erreur synchronisation:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadDashboardData();
+  }, []);
+
+  // --- LA FONCTION RENDERCONTENT (DÉFINIE À L'INTÉRIEUR) ---
+  const renderContent = () => {
+    if (loading) return <p>Chargement...</p>;
+
+    switch (active) {
+      case "overview":
+        return (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 32 }}>
+              {data.stats.map((s, i) => <div key={i} style={{color: s.color}}>{s.label}: {s.value}</div>)}
+            </div>
+            <h2>Demandes récentes</h2>
+            {data.repairs.slice(0, 3).map((r) => <div key={r.id}>{r.title}</div>)}
+          </div>
+        );
+      case "favorites":
+        return (
+          <div>
+            <h2>Mes artisans favoris</h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {data.favorites.map((a) => (
+                <div key={a.id} style={{ padding: 15, background: "#2A2A2A", borderRadius: 10 }}>
+                   <strong>{a.name}</strong> - {a.specialty}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      default:
+        return <div>Contenu de la section {active}</div>;
+    }
+  };
+
+  // --- LE RETOUR JSX ---
   return (
-    <div style={{ minHeight: "100vh", background: C.walnut, display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: C.text }}>
-      <Sidebar active={active} setActive={setActive} user={user} logout={logout} />
-
-      <main style={{ flex: 1, padding: "32px 40px", overflowY: "auto" }}>
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ marginBottom: 32 }}
-        >
-          <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, letterSpacing: "-0.03em" }}>
-            Bonjour, {user?.name?.split(" ")[0]} 👋
-          </h1>
-          <p style={{ margin: 0, fontSize: 13, color: C.muted }}>
-            {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </p>
+    <div style={{ minHeight: "100vh", background: "#1A1A1A", display: "flex", color: "#FFF" }}>
+      {/* <Sidebar active={active} setActive={setActive} user={user} logout={logout} /> */}
+      
+      <main style={{ flex: 1, padding: "32px 40px" }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginBottom: 32 }}>
+          <h1>Bonjour, {user?.name?.split(" ")[0]} 👋</h1>
         </motion.div>
 
         <AnimatePresence mode="wait">
-          <motion.div key={active} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.22 }}>
+          <motion.div 
+            key={active} 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -10 }}
+          >
             {renderContent()}
           </motion.div>
         </AnimatePresence>
