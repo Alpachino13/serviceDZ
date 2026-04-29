@@ -5,6 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
 
 const C = {
   walnut:     "#1A1410",
@@ -200,7 +201,8 @@ export default function ClientDashboard() {
   const { user, logout, getAccessTokenSilently } = useAuth0();
   const [active, setActive]   = useState("overview");
   const [loading, setLoading] = useState(true);
-  const [data, setData]       = useState(null);
+ // On garde l'objet data pour la structure, et on ajoute un state dédié aux workers
+const [data, setData] = useState({ stats: [], repairs: [], favorites: [] });
   const location = useLocation();
   const initialQuery = location.state?.query;
   const [isSearching, setIsSearching] = useState(false);
@@ -228,116 +230,53 @@ const triggerSearch = async (query) => {
   }
 };
   // Mock data — remplace par fetch API réel
-  useEffect(() => {
-    const t = setTimeout(() => {
+
+useEffect(() => {
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const apiUrl = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+
+      // 1. Récupération des artisans depuis ton MongoDB (via Ngrok)
+      const response = await fetch(`${apiUrl}/api/users/workers`);
+      const dbWorkers = await response.json();
+
+      // 2. Formatage pour tes cartes (Favoris)
+      const formattedWorkers = dbWorkers.map(w => ({
+        id: w._id,
+        name: w.name,
+        initials: w.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+        specialty: `${w.specialty} · ${w.city}`,
+        rating: w.rating || 5.0,
+        jobs: Math.floor(Math.random() * 50) + 10, // Simulation pour le design
+        color: w.specialty === "Plomberie" ? "#185FA5" : w.specialty === "Électricité" ? "#0F6E56" : "#993C1D"
+      }));
+
+      // 3. Mise à jour globale
       setData({
         stats: [
-          { icon: "🔧", label: "Demandes totales",  value: "12",  color: C.electric },
-          { icon: "⏳", label: "En cours",           value: "3",   color: C.warning },
-          { icon: "✅", label: "Terminées",          value: "8",   color: C.success },
-          { icon: "⭐", label: "Note moyenne donnée", value: "4.7", color: "#EF9F27" },
+          { icon: "🔧", label: "Demandes totales", value: "12", color: "#3B82F6" },
+          { icon: "⏳", label: "En cours", value: "3", color: "#F59E0B" },
+          { icon: "✅", label: "Terminées", value: "8", color: "#10B981" },
+          { icon: "⭐", label: "Note moyenne", value: "4.7", color: "#EF9F27" },
         ],
         repairs: [
-          { id: 1, title: "Fuite robinet cuisine",     category: "Plomberie",   date: "Aujourd'hui",   status: "active",    artisan: { name: "Karim Bensalem",  initials: "KB", specialty: "Plombier",     rating: 4.9, color: "#185FA5" } },
-          { id: 2, title: "Panne tableau électrique",  category: "Électricité", date: "Hier",          status: "pending",   artisan: null },
-          { id: 3, title: "Peinture salon",            category: "Peinture",    date: "12 avril",      status: "completed", artisan: { name: "Salim Ouahabi",    initials: "SO", specialty: "Peintre",      rating: 4.7, color: "#D4537E" } },
-          { id: 4, title: "Installation climatiseur",  category: "Climatisation", date: "5 avril",     status: "completed", artisan: { name: "Omar Bouchrit",    initials: "OB", specialty: "Technicien",   rating: 5.0, color: "#5DCAA5" } },
+          // Tu peux garder tes repairs statiques ici pour le moment
+          { id: 1, title: "Fuite robinet cuisine", category: "Plomberie", date: "Aujourd'hui", status: "active", artisan: { name: "Karim Bensalem", initials: "KB", specialty: "Plombier", rating: 4.9, color: "#185FA5" } },
+          { id: 3, title: "Peinture salon", category: "Peinture", date: "12 avril", status: "completed", artisan: { name: "Salim Ouahabi", initials: "SO", specialty: "Peintre", rating: 4.7, color: "#D4537E" } },
         ],
-        favorites: [
-          { id: 1, name: "Karim Bensalem",  initials: "KB", specialty: "Plomberie · Tlemcen",    rating: 4.9, jobs: 214, color: "#185FA5" },
-          { id: 2, name: "Yasmine Hadjadj", initials: "YH", specialty: "Électricité · Tlemcen",  rating: 4.8, jobs: 178, color: "#0F6E56" },
-          { id: 3, name: "Omar Bouchrit",   initials: "OB", specialty: "Rénovation · Mansourah", rating: 5.0, jobs: 93,  color: "#993C1D" },
-        ],
+        favorites: formattedWorkers // Mohamed, Sofia et Yacine sont ici !
       });
+
+    } catch (error) {
+      console.error("Erreur de synchronisation :", error);
+    } finally {
       setLoading(false);
-    }, 1200);
-    return () => clearTimeout(t);
-  }, []);
-
-  const renderContent = () => {
-    if (loading) return (
-      <div style={{ display: "grid", gap: 12 }}>
-        {[0,1,2,3].map(i => <SkeletonCard key={i} />)}
-      </div>
-    );
-
-    switch (active) {
-      case "overview":
-        return (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 32 }}>
-              {data.stats.map((s, i) => <StatCard key={i} {...s} index={i} />)}
-            </div>
-            <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: C.text }}>Demandes récentes</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {data.repairs.slice(0, 3).map((r, i) => <RepairCard key={r.id} repair={r} index={i} />)}
-            </div>
-          </div>
-        );
-
-      case "repairs":
-        return (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.text }}>Toutes mes demandes</h2>
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                style={{ all: "unset", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", padding: "9px 18px", background: C.electric, borderRadius: 9 }}
-              >+ Nouvelle demande</motion.button>
-            </div>
-            <div style={{ display: "grid", gap: 10 }}>
-              {data.repairs.map((r, i) => <RepairCard key={r.id} repair={r} index={i} />)}
-            </div>
-          </div>
-        );
-
-      case "favorites":
-        return (
-          <div>
-            <h2 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: C.text }}>Mes artisans favoris</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {data.favorites.map((a, i) => <FavoriteCard key={a.id} artisan={a} index={i} />)}
-            </div>
-          </div>
-        );
-
-      case "history":
-        return (
-          <div>
-            <h2 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: C.text }}>Historique complet</h2>
-            <div style={{ display: "grid", gap: 10 }}>
-              {data.repairs.filter(r => r.status === "completed").map((r, i) => <RepairCard key={r.id} repair={r} index={i} />)}
-            </div>
-          </div>
-        );
-
-      case "settings":
-        return (
-          <div style={{ maxWidth: 480 }}>
-            <h2 style={{ margin: "0 0 24px", fontSize: 16, fontWeight: 700, color: C.text }}>Paramètres du compte</h2>
-            {[
-              { label: "Nom complet",   value: user?.name,  type: "text" },
-              { label: "Email",         value: user?.email, type: "email" },
-              { label: "Téléphone",     value: "",          type: "tel" },
-              { label: "Ville",         value: "Tlemcen",   type: "text" },
-            ].map(field => (
-              <div key={field.label} style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.mutedLt, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{field.label}</label>
-                <input type={field.type} defaultValue={field.value}
-                  style={{ width: "100%", boxSizing: "border-box", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", fontSize: 14, color: C.text, outline: "none", fontFamily: "inherit" }}
-                  onFocus={e => e.target.style.borderColor = C.electric}
-                  onBlur={e => e.target.style.borderColor = C.border}
-                />
-              </div>
-            ))}
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              style={{ all: "unset", cursor: "pointer", marginTop: 8, fontSize: 14, fontWeight: 600, color: "#fff", padding: "12px 28px", background: C.electric, borderRadius: 10 }}
-            >Sauvegarder</motion.button>
-          </div>
-        );
-
-      default: return null;
     }
   };
+
+  loadDashboardData();
+}, []);
 
   return (
     <div style={{ minHeight: "100vh", background: C.walnut, display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: C.text }}>

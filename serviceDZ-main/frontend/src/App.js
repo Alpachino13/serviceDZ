@@ -8,6 +8,7 @@ import LoginPage from './components/LoginPage.jsx';
 import RoleSelection from "./pages/RoleSelection";
 import ClientDashboard from "./pages/ClientDashboard";
 import ArtisanDashboard from "./pages/ArtisanDashboard";
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 function LoadingScreen() {
   return (
@@ -54,34 +55,59 @@ function RoleRoute() {
   if (isLoading || checking) return <LoadingScreen />;
   if (!isAuthenticated)      return <Navigate to="/login" replace />;
   if (!role)                 return <RoleSelection />;
-  if (role === "client")     return <Navigate to="/dashboard/client"  replace />;
-  if (role === "artisan")    return <Navigate to="/dashboard/artisan" replace />;
+  // Change "artisan" par "worker" pour correspondre à ton schéma MongoDB
+  if (role === "client") return <Navigate to="/dashboard/client" replace />;
+  if (role === "worker") return <Navigate to="/dashboard/artisan" replace />;
   return <Navigate to="/" replace />;
 }
 
+function RequireRole({ children, expectedRole, userRole }) {
+  if (userRole !== expectedRole) {
+    // Si un artisan essaie d'aller chez le client (ou inversement), on le renvoie à la racine
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
 function App() {
+  const { role, isLoading, isAuthenticated } = useUserRole();
+  if (isLoading) return <LoadingScreen />;
+
   return (
-    <Router>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <Routes>
-        {/* Publiques */}
-        <Route path="/"      element={<ServiceDZHome />} />
-        <Route path="/login" element={<LoginPage />} />
+    <Routes>
+      {/* 1. Page d'accueil publique */}
+      <Route path="/" element={<Home />} />
 
-        {/* Sélection de rôle */}
-        <Route path="/role" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
+      {/* 2. Route de décision (ton composant RoleRoute) */}
+      <Route path="/check-role" element={<RoleRoute />} />
 
-        {/* Auto-redirect selon rôle */}
-        <Route path="/dashboard" element={<RoleRoute />} />
+      {/* 3. Dashboard CLIENT - Sécurisé par Auth + Rôle */}
+      <Route
+        path="/dashboard/client/*" 
+        element={
+          <ProtectedRoute>
+            <RequireRole expectedRole="client" userRole={role}>
+              <ClientDashboard />
+            </RequireRole>
+          </ProtectedRoute>
+        } 
+      />
 
-        {/* Dashboards */}
-        <Route path="/dashboard/client"  element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
-        <Route path="/dashboard/artisan" element={<ProtectedRoute><ArtisanDashboard /></ProtectedRoute>} />
+      {/* 4. Dashboard ARTISAN (Worker) - Sécurisé par Auth + Rôle */}
+      <Route 
+        path="/dashboard/artisan/*" 
+        element={
+          <ProtectedRoute>
+            <RequireRole expectedRole="worker" userRole={role}>
+              <ArtisanDashboard />
+            </RequireRole>
+          </ProtectedRoute>
+        } 
+      />
 
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+      {/* Redirection par défaut */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
