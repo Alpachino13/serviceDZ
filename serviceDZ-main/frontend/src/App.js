@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-
+import { useUserRole } from './hooks/useUserRole'
 // Tes composants
 import ServiceDZHome from './components/ServiceDZHome.jsx';
 import LoginPage from './components/LoginPage.jsx';
@@ -75,7 +75,7 @@ function App() {
   return (
     <Routes>
       {/* 1. Page d'accueil publique */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<ServiceDZHome />} />
 
       {/* 2. Route de décision (ton composant RoleRoute) */}
       <Route path="/check-role" element={<RoleRoute />} />
