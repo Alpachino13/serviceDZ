@@ -274,34 +274,63 @@ const { user, logout } = useAuth0();
 
   // --- LA FONCTION RENDERCONTENT (DÉFINIE À L'INTÉRIEUR) ---
   const renderContent = () => {
-    if (loading) return <p>Chargement...</p>;
+    if (loading) return (
+      <div style={{ display: "grid", gap: 12 }}>
+        {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
+      </div>
+    );
 
     switch (active) {
       case "overview":
         return (
           <div>
+            {/* Grille de Stats avec StatCard */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 32 }}>
-              {data.stats.map((s, i) => <div key={i} style={{color: s.color}}>{s.label}: {s.value}</div>)}
+              {data.stats.map((s, i) => (
+                <StatCard key={i} {...s} index={i} />
+              ))}
             </div>
-            <h2>Demandes récentes</h2>
-            {data.repairs.slice(0, 3).map((r) => <div key={r.id}>{r.title}</div>)}
-          </div>
-        );
-      case "favorites":
-        return (
-          <div>
-            <h2>Mes artisans favoris</h2>
+            
+            <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: C.text }}>
+              Demandes récentes
+            </h2>
+            
             <div style={{ display: "grid", gap: 10 }}>
-              {data.favorites.map((a) => (
-                <div key={a.id} style={{ padding: 15, background: "#2A2A2A", borderRadius: 10 }}>
-                   <strong>{a.name}</strong> - {a.specialty}
-                </div>
+              {data.repairs.slice(0, 3).map((r, i) => (
+                <RepairCard key={r.id} repair={r} index={i} />
               ))}
             </div>
           </div>
         );
+
+      case "favorites":
+        return (
+          <div>
+            <h2 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: C.text }}>
+              Mes artisans favoris
+            </h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {data.favorites.map((a, i) => (
+                <FavoriteCard key={a.id} artisan={a} index={i} />
+              ))}
+            </div>
+          </div>
+        );
+
+      case "repairs":
+        return (
+          <div style={{ display: "grid", gap: 10 }}>
+            <h2 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: C.text }}>
+              Toutes mes demandes
+            </h2>
+            {data.repairs.map((r, i) => (
+              <RepairCard key={r.id} repair={r} index={i} />
+            ))}
+          </div>
+        );
+
       default:
-        return <div>Contenu de la section {active}</div>;
+        return <div style={{ color: C.muted }}>Section {active} en cours de développement...</div>;
     }
   };
 
