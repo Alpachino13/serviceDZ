@@ -4,10 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
-const AUTH0_DOMAIN    = process.env.REACT_APP_AUTH0_DOMAIN    || "";
-const AUTH0_CLIENT_ID = process.env.REACT_APP_AUTH0_CLIENT_ID || "";
-
-const F = "'Inter', 'Segoe UI', sans-serif";
+const F   = "'Inter', 'Segoe UI', sans-serif";
 
 const C = {
   bg:       "#111110",
@@ -17,31 +14,25 @@ const C = {
   text:     "#F0EDE8",
   muted:    "#888580",
   electric: "#3B82F6",
-  electricD:"#1D4ED8",
   success:  "#10B981",
   danger:   "#EF4444",
   dangerBg: "rgba(239,68,68,0.08)",
 };
 
+const SPECIALTIES = [
+  { value: "Plomberie",     icon: "🔧" },
+  { value: "Électricité",   icon: "⚡" },
+  { value: "Maçonnerie",    icon: "🧱" },
+  { value: "Menuiserie",    icon: "🪟" },
+  { value: "Climatisation", icon: "❄️" },
+  { value: "Peinture",      icon: "🎨" },
+  { value: "Serrurerie",    icon: "🔩" },
+  { value: "Rénovation",    icon: "🏠" },
+];
+
 function saveSession(token, user) {
   localStorage.setItem("sdz_token", token);
   localStorage.setItem("sdz_user",  JSON.stringify(user));
-}
-
-// ─── Google OAuth via Auth0 ───────────────────────────────────────────────────
-function loginWithGoogle() {
-  if (!AUTH0_DOMAIN || !AUTH0_CLIENT_ID) {
-    alert("Google login non configuré (variables AUTH0 manquantes)");
-    return;
-  }
-  const redirect = encodeURIComponent(`${window.location.origin}/auth/callback`);
-  const url = `https://${AUTH0_DOMAIN}/authorize`
-    + `?response_type=code`
-    + `&client_id=${AUTH0_CLIENT_ID}`
-    + `&redirect_uri=${redirect}`
-    + `&scope=openid%20profile%20email`
-    + `&connection=google-oauth2`;
-  window.location.href = url;
 }
 
 // ─── Field ────────────────────────────────────────────────────────────────────
@@ -105,8 +96,8 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [err, setErr]           = useState("");
   const [ok, setOk]             = useState("");
-  const [form, setForm]         = useState({ name: "", email: "", password: "", confirm: "", role: "client" });
-  const [errs, setErrs]         = useState({});
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", role: "client", specialty: "" });
+  const [errs, setErrs] = useState({});
 
   const set = k => e => { setForm(f => ({ ...f, [k]: e.target.value })); setErrs(x => ({ ...x, [k]: "" })); setErr(""); };
 
@@ -117,6 +108,7 @@ export default function LoginPage() {
     if (mode === "register") {
       if (!form.name)                              e.name    = "Nom requis.";
       if (form.password !== form.confirm)          e.confirm = "Mots de passe différents.";
+      if (form.role === "artisan" && !form.specialty) e.specialty = "Choisissez une spécialité.";
     }
     setErrs(e);
     return !Object.keys(e).length;
@@ -128,7 +120,7 @@ export default function LoginPage() {
     const endpoint = mode === "login" ? "/api/login" : "/api/register";
     const body = mode === "login"
       ? { email: form.email, password: form.password }
-      : { name: form.name, email: form.email, password: form.password, role: form.role };
+      : { name: form.name, email: form.email, password: form.password, role: form.role, specialty: form.role === "artisan" ? form.specialty : undefined };
     try {
       const res  = await fetch(`${API}${endpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -206,7 +198,7 @@ export default function LoginPage() {
                 <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: F }}>Je suis…</p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {[{ v: "client", l: "👤 Client", d: "Je cherche un artisan" }, { v: "artisan", l: "🔧 Artisan", d: "Je propose mes services" }].map(o => (
-                    <button key={o.v} type="button" onClick={() => setForm(f => ({ ...f, role: o.v }))} aria-pressed={form.role === o.v}
+                    <button key={o.v} type="button" onClick={() => setForm(f => ({ ...f, role: o.v, specialty: "" }))} aria-pressed={form.role === o.v}
                       style={{ all: "unset", cursor: "pointer", padding: "10px 12px", borderRadius: 9, border: `1px solid ${form.role === o.v ? C.electric + "80" : C.border}`, background: form.role === o.v ? `${C.electric}10` : "transparent", transition: "all 0.15s" }}
                     >
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: form.role === o.v ? C.electric : C.text, fontFamily: F }}>{o.l}</p>
@@ -215,6 +207,24 @@ export default function LoginPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Spécialité — artisan uniquement */}
+              {form.role === "artisan" && (
+                <div>
+                  <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: F }}>Ma spécialité</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+                    {SPECIALTIES.map(s => (
+                      <button key={s.value} type="button" onClick={() => setForm(f => ({ ...f, specialty: s.value }))} aria-pressed={form.specialty === s.value}
+                        style={{ all: "unset", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "9px 11px", borderRadius: 8, border: `1px solid ${form.specialty === s.value ? C.success + "80" : C.border}`, background: form.specialty === s.value ? `${C.success}10` : "transparent", transition: "all 0.15s" }}
+                      >
+                        <span style={{ fontSize: 15 }}>{s.icon}</span>
+                        <span style={{ fontSize: 12, fontWeight: form.specialty === s.value ? 600 : 400, color: form.specialty === s.value ? C.success : C.muted, fontFamily: F }}>{s.value}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {errs.specialty && <p style={{ margin: "5px 0 0", fontSize: 11, color: C.danger, fontFamily: F }}>{errs.specialty}</p>}
+                </div>
+              )}
             </>}
 
             {/* Submit */}
@@ -224,28 +234,6 @@ export default function LoginPage() {
               {loading ? <><Spinner /> Chargement…</> : mode === "login" ? "Se connecter" : "Créer mon compte"}
             </motion.button>
           </div>
-
-          {/* Séparateur */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "20px 0" }}>
-            <div style={{ flex: 1, height: 1, background: C.border }} />
-            <span style={{ fontSize: 11, color: C.muted, fontFamily: F }}>ou continuer avec</span>
-            <div style={{ flex: 1, height: 1, background: C.border }} />
-          </div>
-
-          {/* Google */}
-          <motion.button whileHover={{ opacity: 0.85 }} whileTap={{ scale: 0.98 }} onClick={loginWithGoogle}
-            style={{ all: "unset", width: "100%", boxSizing: "border-box", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "12px", border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, fontWeight: 600, color: C.text, fontFamily: F, transition: "border-color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"}
-            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
-          >
-            <svg width="18" height="18" viewBox="0 0 48 48">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            </svg>
-            Continuer avec Google
-          </motion.button>
 
         </motion.div>
 
