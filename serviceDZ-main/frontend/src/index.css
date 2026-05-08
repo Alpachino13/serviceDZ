@@ -3,6 +3,10 @@
   padding: 0;
   box-sizing: border-box;
 }
+html, body, #root {
+  height: 100%; /* Ensure html, body, and root div take full height */
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -11,6 +15,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #1A1410; /* Set background color to C.walnut directly */
 }
 
 code {
