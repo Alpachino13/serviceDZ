@@ -117,7 +117,7 @@ function SearchBar({ onSearch }) {
         Rechercher un service ou un réparateur
       </label>
       <motion.div
-        animate={{ boxShadow: focused ? `0 0 0 2px ${C.electric}, 0 8px 32px rgba(55,138,221,0.18)` : `0 0 0 1px ${C.border}` }}
+        animate={{ boxShadow: focused ? `0 0 0 2px ${C.electric}, 0 6px 20px rgba(55,138,221,0.12)` : `0 0 0 1px ${C.border}` }}
         transition={{ duration: 0.2 }} style={{ borderRadius: 14 }}
       >
         <div style={{ display: "flex", alignItems: "center", background: C.surface, border: `1px solid ${focused ? C.electric : C.border}`, borderRadius: 14, padding: "0 16px", gap: 10, transition: "border-color 0.2s" }}>
@@ -203,7 +203,7 @@ const handleSearch = (query) => {
   const clearSearch = () => { setSearchQuery(""); setResults(null); setSearchError(""); };
 
   return (
-    <div style={{ minHeight: "100vh", background: C.walnut, color: C.text, fontFamily: "'DM Sans', 'Segoe UI', sans-serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100dvh", background: C.walnut, color: C.text, fontFamily: "'DM Sans', 'Segoe UI', sans-serif", overflowX: "hidden" }}>
 
       <div aria-hidden="true" style={{ position: "fixed", inset: 0, backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`, backgroundSize: "48px 48px", pointerEvents: "none", zIndex: 0 }} />
       <div aria-hidden="true" style={{ position: "fixed", top: -160, left: "50%", transform: "translateX(-50%)", width: 520, height: 320, background: `radial-gradient(ellipse at center, ${C.electric}22 0%, transparent 70%)`, pointerEvents: "none", zIndex: 0 }} />
