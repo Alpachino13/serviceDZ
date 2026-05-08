@@ -53,13 +53,14 @@ function SkeletonCard() {
   );
 }
 
-function CategoryCard({ cat, index }) {
+function CategoryCard({ cat, index, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.button
       initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 * index, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
       aria-label={`${cat.label}, ${cat.count} réparateurs`}
       style={{ all: "unset", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12, background: hovered ? `${cat.color}12` : C.surface, border: `1px solid ${hovered ? cat.color + "55" : C.border}`, borderRadius: 16, padding: "20px 20px 18px", transition: "all 0.22s ease", width: "100%", boxSizing: "border-box" }}
     >
@@ -73,13 +74,14 @@ function CategoryCard({ cat, index }) {
   );
 }
 
-function ExpertCard({ expert, index }) {
+function ExpertCard({ expert, index, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.07 * index, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
       aria-label={`${expert.name}, ${expert.specialty}, note ${expert.rating}`}
       style={{ background: hovered ? `${expert.color}0F` : C.surface, border: `1px solid ${hovered ? expert.color + "44" : C.border}`, borderRadius: 16, padding: "20px 22px", display: "flex", gap: 14, alignItems: "center", cursor: "pointer", transition: "all 0.22s ease" }}
     >
@@ -191,14 +193,27 @@ export default function ServiceDZHome() {
     }
   };
 
-  // FIX : handleSearch est défini ici et passé à <SearchBar onSearch={handleSearch} />
-// Remplace ton handleSearch actuel par celui-ci
-const handleSearch = (query) => {
-  if (!query || !query.trim()) return;
-  
-  // On ne fait PAS le fetch ici, on délègue au Dashboard
-  navigate("/dashboard", { state: { search: query.trim() } });
-};
+  const handleSearch = async (query) => {
+    if (!query?.trim()) return;
+    setSearchQuery(query.trim());
+    setIsSearching(true);
+    setResults(null);
+    setSearchError("");
+    const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+    try {
+      const res  = await fetch(`${API}/api/recherche?q=${encodeURIComponent(query.trim())}`, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const data = await res.json();
+      setResults(Array.isArray(data) ? data : (data.results ?? []));
+    } catch (err) {
+      setSearchError(err.message);
+      setResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const clearSearch = () => { setSearchQuery(""); setResults(null); setSearchError(""); };
 
@@ -345,7 +360,14 @@ const handleSearch = (query) => {
                 {isSearching
                   ? [0, 1, 2].map(i => <SkeletonCard key={i} />)
                   : results && results.length > 0
-                    ? results.map((expert, i) => <ExpertCard key={expert.id ?? i} expert={expert} index={i} />)
+                    ? results.map((expert, i) => (
+                        <ExpertCard
+                          key={expert.id ?? expert._id ?? i}
+                          expert={expert}
+                          index={i}
+                          onClick={() => navigate(`/artisan/${expert.id ?? expert._id}`)}
+                        />
+                      ))
                     : !isSearching && <p style={{ color: C.muted, fontSize: 14, gridColumn: "1/-1" }}>Aucun artisan trouvé.</p>
                 }
               </div>
@@ -375,7 +397,11 @@ const handleSearch = (query) => {
               <a href="#" style={{ fontSize: 13, color: C.electric, textDecoration: "none" }}>Voir tout →</a>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }} role="list">
-              {categories.map((cat, i) => <div key={cat.label} role="listitem"><CategoryCard cat={cat} index={i} /></div>)}
+              {categories.map((cat, i) => (
+                <div key={cat.label} role="listitem">
+                  <CategoryCard cat={cat} index={i} onClick={() => handleSearch(cat.label)} />
+                </div>
+              ))}
             </div>
           </section>
 
@@ -387,7 +413,11 @@ const handleSearch = (query) => {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }} role="list">
               {pageLoading
                 ? [0, 1, 2].map(i => <div key={i} role="listitem" aria-busy="true"><SkeletonCard /></div>)
-                : FEATURED.map((expert, i) => <div key={expert.id} role="listitem"><ExpertCard expert={expert} index={i} /></div>)
+                : FEATURED.map((expert, i) => (
+                    <div key={expert.id} role="listitem">
+                      <ExpertCard expert={expert} index={i} onClick={() => navigate(`/artisan/${expert.id}`)} />
+                    </div>
+                  ))
               }
             </div>
           </section>
