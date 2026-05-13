@@ -27,7 +27,7 @@ services:
     container_name: servicedz-api
     restart: always
     ports:
-      - "3000:3000"
+      - "5000:3000"  # Changé : On accède au backend via le port 5000 pour laisser le 3000 au frontend
     env_file: .env
     depends_on:
       - postgres
@@ -40,7 +40,7 @@ services:
     ports:
       - "${APP_PORT}:80"
     environment:
-      - STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      - STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
     volumes:
       - ${DATA_PATH}/uploads:/usr/share/nginx/html/uploads
