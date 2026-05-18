@@ -1,9 +1,20 @@
 // src/pages/ArtisanDashboard.jsx
+// Updated: replaced manual bar chart with Recharts AreaChart in the "revenue" tab.
+// New dependency: recharts (npm install recharts)
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const C = {
   walnut:     "#1A1410",
@@ -32,14 +43,75 @@ const STATUS = {
   declined:   { label: "Refusée",     color: C.danger,   bg: "#E24B4A15" },
 };
 
+// ─── Revenue chart data (monthly breakdown for current year) ───────────────────
+const REVENUE_CHART_DATA = [
+  { month: "Jan", revenus: 28000, missions: 12 },
+  { month: "Fév", revenus: 34500, missions: 15 },
+  { month: "Mar", revenus: 21000, missions: 9  },
+  { month: "Avr", revenus: 39000, missions: 17 },
+  { month: "Mai", revenus: 42500, missions: 18 },
+];
+
+// ─── Custom Tooltip for revenue chart ─────────────────────────────────────────
+function RevenueTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const revenus  = payload.find(p => p.dataKey === "revenus")?.value  || 0;
+  const missions = payload.find(p => p.dataKey === "missions")?.value || 0;
+  return (
+    <div style={{
+      background: C.surfaceLt,
+      border: `1px solid ${C.border}`,
+      borderRadius: 10,
+      padding: "12px 16px",
+      minWidth: 160,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+    }}>
+      <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: C.mutedLt, letterSpacing: "0.05em" }}>
+        {label}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: C.success, display: "block" }} />
+            <span style={{ fontSize: 12, color: C.mutedLt }}>Revenus</span>
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.success }}>
+            {revenus.toLocaleString("fr-DZ")} DA
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: C.electric, display: "block" }} />
+            <span style={{ fontSize: 12, color: C.mutedLt }}>Missions</span>
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.electric }}>
+            {missions}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Existing sub-components (unchanged) ──────────────────────────────────────
+
 function StatusBadge({ status }) {
   const s = STATUS[status] || STATUS.new;
-  return <span style={{ fontSize: 11, fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 6, padding: "3px 9px" }}>{s.label}</span>;
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 700, color: s.color, background: s.bg,
+      border: `1px solid ${s.color}30`, borderRadius: 6, padding: "3px 9px",
+    }}>
+      {s.label}
+    </span>
+  );
 }
 
 function SkeletonCard() {
   return (
-    <motion.div animate={{ opacity: [0.4, 0.7, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }}
+    <motion.div
+      animate={{ opacity: [0.4, 0.7, 0.4] }}
+      transition={{ duration: 1.6, repeat: Infinity }}
       style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px" }}
     >
       <div style={{ height: 14, width: "40%", background: C.anthraLt, borderRadius: 6, marginBottom: 10 }} />
@@ -61,15 +133,23 @@ function Sidebar({ active, setActive, user, logout }) {
   ];
 
   return (
-    <motion.aside initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }}
+    <motion.aside
+      initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }}
       style={{ width: 240, background: C.surface, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", padding: "24px 0", flexShrink: 0, minHeight: "100vh" }}
     >
-      <div style={{ padding: "0 20px 24px", borderBottom: `1px solid ${C.border}`, marginBottom: 16, cursor: "pointer" }} onClick={() => navigate("/")}>
+      <div
+        style={{ padding: "0 20px 24px", borderBottom: `1px solid ${C.border}`, marginBottom: 16, cursor: "pointer" }}
+        onClick={() => navigate("/")}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: C.success, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔧</div>
-          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.02em" }}>Service<span style={{ color: C.success }}>DZ</span></span>
+          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.02em" }}>
+            Service<span style={{ color: C.success }}>DZ</span>
+          </span>
         </div>
-        <span style={{ display: "inline-block", marginTop: 6, fontSize: 10, fontWeight: 700, color: C.success, background: `${C.success}20`, border: `1px solid ${C.success}40`, borderRadius: 4, padding: "2px 7px", letterSpacing: "0.06em" }}>ARTISAN</span>
+        <span style={{ display: "inline-block", marginTop: 6, fontSize: 10, fontWeight: 700, color: C.success, background: `${C.success}20`, border: `1px solid ${C.success}40`, borderRadius: 4, padding: "2px 7px", letterSpacing: "0.06em" }}>
+          ARTISAN
+        </span>
       </div>
 
       <nav style={{ flex: 1, padding: "0 12px", display: "flex", flexDirection: "column", gap: 4 }}>
@@ -99,11 +179,14 @@ function Sidebar({ active, setActive, user, logout }) {
             <p style={{ margin: "2px 0 0", fontSize: 11, color: C.success }}>✓ Artisan vérifié</p>
           </div>
         </div>
-        <button onClick={() => logout({ logoutParams: { returnTo: "/" } })}
+        <button
+          onClick={() => logout({ logoutParams: { returnTo: "/" } })}
           style={{ all: "unset", cursor: "pointer", width: "100%", boxSizing: "border-box", textAlign: "center", padding: "8px", borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, color: C.muted, transition: "all 0.2s" }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = "#E24B4A50"; e.currentTarget.style.color = C.danger; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
-        >Déconnexion</button>
+        >
+          Déconnexion
+        </button>
       </div>
     </motion.aside>
   );
@@ -111,7 +194,8 @@ function Sidebar({ active, setActive, user, logout }) {
 
 function StatCard({ icon, label, value, sub, color, index }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * index }}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * index }}
       style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px" }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -127,7 +211,8 @@ function StatCard({ icon, label, value, sub, color, index }) {
 function MissionCard({ mission, index, onAccept, onDecline }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * index }}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * index }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ background: hovered ? C.surfaceLt : C.surface, border: `1px solid ${hovered ? C.success + "30" : C.border}`, borderRadius: 14, padding: "18px 20px", transition: "all 0.2s" }}
     >
@@ -141,21 +226,13 @@ function MissionCard({ mission, index, onAccept, onDecline }) {
       <p style={{ margin: "0 0 12px", fontSize: 13, color: C.mutedLt, lineHeight: 1.5 }}>{mission.description}</p>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ fontSize: 12, color: C.text, fontWeight: 700, background: C.anthracite, borderRadius: 7, padding: "4px 10px" }}>
-            💰 {mission.budget}
-          </span>
-          <span style={{ fontSize: 12, color: C.muted, background: C.anthracite, borderRadius: 7, padding: "4px 10px" }}>
-            📍 {mission.distance}
-          </span>
+          <span style={{ fontSize: 12, color: C.text, fontWeight: 700, background: C.anthracite, borderRadius: 7, padding: "4px 10px" }}>💰 {mission.budget}</span>
+          <span style={{ fontSize: 12, color: C.muted, background: C.anthracite, borderRadius: 7, padding: "4px 10px" }}>📍 {mission.distance}</span>
         </div>
         {mission.status === "new" && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => onDecline(mission.id)}
-              style={{ all: "unset", cursor: "pointer", fontSize: 12, color: C.danger, padding: "6px 12px", border: `1px solid ${C.danger}40`, borderRadius: 7 }}
-            >Refuser</button>
-            <button onClick={() => onAccept(mission.id)}
-              style={{ all: "unset", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#fff", padding: "6px 14px", background: C.success, borderRadius: 7 }}
-            >Accepter</button>
+            <button onClick={() => onDecline(mission.id)} style={{ all: "unset", cursor: "pointer", fontSize: 12, color: C.danger, padding: "6px 12px", border: `1px solid ${C.danger}40`, borderRadius: 7 }}>Refuser</button>
+            <button onClick={() => onAccept(mission.id)} style={{ all: "unset", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#fff", padding: "6px 14px", background: C.success, borderRadius: 7 }}>Accepter</button>
           </div>
         )}
       </div>
@@ -165,7 +242,8 @@ function MissionCard({ mission, index, onAccept, onDecline }) {
 
 function ReviewCard({ review, index }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * index }}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * index }}
       style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 20px" }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -177,15 +255,15 @@ function ReviewCard({ review, index }) {
           <p style={{ margin: "2px 0 0", fontSize: 11, color: C.muted }}>{review.service} · {review.date}</p>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 2 }}>
-          {[1,2,3,4,5].map(s => (
-            <span key={s} style={{ fontSize: 13, color: s <= review.rating ? C.warning : C.anthraLt }}>★</span>
-          ))}
+          {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 13, color: s <= review.rating ? C.warning : C.anthraLt }}>★</span>)}
         </div>
       </div>
       <p style={{ margin: 0, fontSize: 13, color: C.mutedLt, lineHeight: 1.6, fontStyle: "italic" }}>"{review.comment}"</p>
     </motion.div>
   );
 }
+
+// ─── Main component ────────────────────────────────────────────────────────────
 
 export default function ArtisanDashboard() {
   const { user, logout, setSession } = useAuth();
@@ -206,43 +284,38 @@ export default function ArtisanDashboard() {
       };
 
       try {
-        // Récupère le profil complet depuis l'API et met à jour localStorage
         const meRes = await fetch(`${API}/api/users/me`, { headers });
         if (meRes.ok) {
           const meData = await meRes.json();
-          // Met à jour le user dans localStorage avec specialty, city, bio etc.
           const updatedUser = { ...user, ...meData };
           localStorage.setItem("sdz_user", JSON.stringify(updatedUser));
-          // Force re-render avec les nouvelles données
           window.dispatchEvent(new Event("storage"));
         }
       } catch (e) {
         console.warn("Impossible de récupérer le profil:", e.message);
       }
 
-      // Données mock pour les missions/reviews (à remplacer par vraie API plus tard)
       setData({
         stats: [
-          { icon: "📋", label: "Missions ce mois",   value: "18",       sub: "+3",        color: C.electric },
-          { icon: "💰", label: "Revenus ce mois",    value: "42 500 DA", sub: "+12%",     color: C.success  },
-          { icon: "⭐", label: "Note moyenne",        value: "4.8",      sub: "→",         color: C.warning  },
-          { icon: "✅", label: "Taux de complétion", value: "96%",       sub: "Excellent", color: C.success  },
+          { icon: "📋", label: "Missions ce mois",   value: "18",        sub: "+3",        color: C.electric },
+          { icon: "💰", label: "Revenus ce mois",    value: "42 500 DA", sub: "+12%",      color: C.success  },
+          { icon: "⭐", label: "Note moyenne",        value: "4.8",       sub: "→",         color: C.warning  },
+          { icon: "✅", label: "Taux de complétion", value: "96%",        sub: "Excellent", color: C.success  },
         ],
         missions: [
-          { id: 1, title: "Fuite robinet urgente",        category: "Plomberie",   location: "Tlemcen Centre", date: "Aujourd'hui", status: "new",        description: "Fuite importante sous l'évier, intervention urgente.", budget: "2 500 DA", distance: "1.2 km" },
-          { id: 2, title: "Installation prise électrique", category: "Électricité", location: "Bel Air",       date: "Demain",      status: "accepted",   description: "Ajout de 3 prises dans le salon.",                    budget: "3 000 DA", distance: "2.8 km" },
-          { id: 3, title: "Réparation chauffe-eau",       category: "Plomberie",   location: "Mansourah",      date: "12 avr.",     status: "inprogress", description: "Chauffe-eau en panne, diagnostic et réparation.",     budget: "4 000 DA", distance: "5.1 km" },
-          { id: 4, title: "Débouchage canalisation",      category: "Plomberie",   location: "Tlemcen",        date: "8 avr.",      status: "completed",  description: "Canalisation bouchée dans la salle de bain.",         budget: "1 800 DA", distance: "0.8 km" },
+          { id: 1, title: "Fuite robinet urgente",         category: "Plomberie",   location: "Tlemcen Centre", date: "Aujourd'hui", status: "new",        description: "Fuite importante sous l'évier, intervention urgente.", budget: "2 500 DA", distance: "1.2 km" },
+          { id: 2, title: "Installation prise électrique", category: "Électricité", location: "Bel Air",        date: "Demain",      status: "accepted",   description: "Ajout de 3 prises dans le salon.",                    budget: "3 000 DA", distance: "2.8 km" },
+          { id: 3, title: "Réparation chauffe-eau",        category: "Plomberie",   location: "Mansourah",      date: "12 avr.",     status: "inprogress", description: "Chauffe-eau en panne, diagnostic et réparation.",     budget: "4 000 DA", distance: "5.1 km" },
+          { id: 4, title: "Débouchage canalisation",       category: "Plomberie",   location: "Tlemcen",        date: "8 avr.",      status: "completed",  description: "Canalisation bouchée dans la salle de bain.",         budget: "1 800 DA", distance: "0.8 km" },
         ],
         reviews: [
-          { id: 1, client: "Amira B.",  service: "Réparation", date: "Hier",     rating: 5, comment: "Intervention rapide et efficace, très professionnel !" },
-          { id: 2, client: "Mehdi R.",  service: "Réparation", date: "12 avr.",  rating: 5, comment: "Excellent travail, ponctuel et soigné. Prix raisonnable." },
-          { id: 3, client: "Fatima K.", service: "Réparation", date: "5 avr.",   rating: 4, comment: "Bon travail dans l'ensemble, très satisfaite." },
+          { id: 1, client: "Amira B.",  service: "Réparation", date: "Hier",    rating: 5, comment: "Intervention rapide et efficace, très professionnel !" },
+          { id: 2, client: "Mehdi R.",  service: "Réparation", date: "12 avr.", rating: 5, comment: "Excellent travail, ponctuel et soigné. Prix raisonnable." },
+          { id: 3, client: "Fatima K.", service: "Réparation", date: "5 avr.",  rating: 4, comment: "Bon travail dans l'ensemble, très satisfaite." },
         ],
         revenue: {
-          total:     "42 500 DA",
-          thisMonth: [8500, 12000, 6500, 9000, 6500],
-          months:    ["Jan", "Fév", "Mar", "Avr", "Mai"],
+          cesMois:   "42 500 DA",
+          total2025: "186 000 DA",
         },
       });
       setLoading(false);
@@ -250,13 +323,18 @@ export default function ArtisanDashboard() {
     load();
   }, []);
 
-  const handleAccept  = (id) => setData(d => ({ ...d, missions: d.missions.map(m => m.id === id ? { ...m, status: "accepted" } : m) }));
-  const handleDecline = (id) => setData(d => ({ ...d, missions: d.missions.map(m => m.id === id ? { ...m, status: "declined" } : m) }));
+  const handleAccept  = (id) => setData(d => ({ ...d, missions: d.missions.map(m => m.id === id ? { ...m, status: "accepted" }  : m) }));
+  const handleDecline = (id) => setData(d => ({ ...d, missions: d.missions.map(m => m.id === id ? { ...m, status: "declined" }  : m) }));
 
   const renderContent = () => {
-    if (loading) return <div style={{ display: "grid", gap: 12 }}>{[0,1,2,3].map(i => <SkeletonCard key={i} />)}</div>;
+    if (loading) return (
+      <div style={{ display: "grid", gap: 12 }}>
+        {[0,1,2,3].map(i => <SkeletonCard key={i} />)}
+      </div>
+    );
 
     switch (active) {
+      // ── Overview ──────────────────────────────────────────────────────────────
       case "overview":
         return (
           <div>
@@ -272,6 +350,7 @@ export default function ArtisanDashboard() {
           </div>
         );
 
+      // ── Missions ──────────────────────────────────────────────────────────────
       case "missions":
         return (
           <div>
@@ -284,11 +363,11 @@ export default function ArtisanDashboard() {
           </div>
         );
 
+      // ── Profile ──────────────────────────────────────────────────────────────
       case "profile":
         return (
           <div style={{ maxWidth: 560 }}>
             <h2 style={{ margin: "0 0 24px", fontSize: 16, fontWeight: 700, color: C.text }}>Mon profil public</h2>
-            {/* Avatar */}
             <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "20px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 20 }}>
               <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.success + "30", border: `2px solid ${C.success}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: C.success }}>
                 {(user?.name || "A")[0]}
@@ -303,11 +382,11 @@ export default function ArtisanDashboard() {
               </div>
             </div>
             {[
-              { label: "Spécialité principale", value: user?.specialty || "", type: "text" },
-              { label: "Description",           value: user?.bio || "", type: "textarea" },
-              { label: "Téléphone",             value: user?.phone || "", type: "tel" },
+              { label: "Spécialité principale", value: user?.specialty || "",  type: "text"     },
+              { label: "Description",           value: user?.bio || "",        type: "textarea" },
+              { label: "Téléphone",             value: user?.phone || "",      type: "tel"      },
               { label: "Zone d'intervention",   value: user?.city ? `${user.city} et environs (30km)` : "", type: "text" },
-              { label: "Tarif horaire",         value: user?.hourlyRate || "", type: "text" },
+              { label: "Tarif horaire",         value: user?.hourlyRate || "", type: "text"     },
             ].map(field => (
               <div key={field.label} style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.mutedLt, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{field.label}</label>
@@ -328,10 +407,13 @@ export default function ArtisanDashboard() {
             ))}
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               style={{ all: "unset", cursor: "pointer", marginTop: 8, fontSize: 14, fontWeight: 600, color: "#fff", padding: "12px 28px", background: C.success, borderRadius: 10 }}
-            >Mettre à jour le profil</motion.button>
+            >
+              Mettre à jour le profil
+            </motion.button>
           </div>
         );
 
+      // ── Reviews ───────────────────────────────────────────────────────────────
       case "reviews":
         return (
           <div>
@@ -360,50 +442,136 @@ export default function ArtisanDashboard() {
           </div>
         );
 
+      // ── Revenue — replaced simple bar chart with Recharts AreaChart ────────────
       case "revenue":
         return (
           <div>
             <h2 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: C.text }}>Revenus</h2>
+
+            {/* KPI summary cards */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px" }}>
                 <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Ce mois</p>
-                <p style={{ margin: 0, fontSize: 28, fontWeight: 800, color: C.success }}>42 500 DA</p>
+                <p style={{ margin: 0, fontSize: 28, fontWeight: 800, color: C.success }}>{data.revenue.cesMois}</p>
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px" }}>
                 <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Total 2025</p>
-                <p style={{ margin: 0, fontSize: 28, fontWeight: 800, color: C.text }}>186 000 DA</p>
+                <p style={{ margin: 0, fontSize: 28, fontWeight: 800, color: C.text }}>{data.revenue.total2025}</p>
               </div>
             </div>
-            {/* Bar chart simple */}
+
+            {/* ─── Recharts AreaChart ─────────────────────────────────────────── */}
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "24px" }}>
-              <p style={{ margin: "0 0 20px", fontSize: 14, fontWeight: 600, color: C.text }}>Revenus par mois</p>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 12, height: 120 }}>
-                {data.revenue.thisMonth.map((val, i) => {
-                  const max = Math.max(...data.revenue.thisMonth);
-                  const h = (val / max) * 100;
-                  return (
-                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: C.muted }}>{(val/1000).toFixed(0)}k</span>
-                      <motion.div initial={{ height: 0 }} animate={{ height: `${h}%` }} transition={{ delay: i * 0.08, duration: 0.5, ease: "easeOut" }}
-                        style={{ width: "100%", background: i === data.revenue.thisMonth.length - 1 ? C.success : `${C.success}50`, borderRadius: "6px 6px 0 0", minHeight: 4 }}
-                      />
-                      <span style={{ fontSize: 10, color: C.muted }}>{data.revenue.months[i]}</span>
+              {/* Legend */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: C.text }}>Revenus par mois</p>
+                <div style={{ display: "flex", gap: 16 }}>
+                  {[
+                    { color: C.success,  label: "Revenus (DA)" },
+                    { color: C.electric, label: "Missions"     },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: 3, background: item.color, display: "block" }} />
+                      <span style={{ fontSize: 11, color: C.mutedLt }}>{item.label}</span>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
+
+              {/* Chart */}
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart
+                  data={REVENUE_CHART_DATA}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="gradRevenus" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor={C.success} stopOpacity={0.35} />
+                      <stop offset="95%" stopColor={C.success} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="gradMissions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor={C.electric} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={C.electric} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.05)"
+                    vertical={false}
+                  />
+
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fill: C.muted, fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickMargin={10}
+                  />
+
+                  {/* Left Y-axis: revenus */}
+                  <YAxis
+                    yAxisId="revenus"
+                    orientation="left"
+                    tick={{ fill: C.muted, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={v => `${(v / 1000).toFixed(0)}k`}
+                    width={38}
+                  />
+
+                  {/* Right Y-axis: missions count */}
+                  <YAxis
+                    yAxisId="missions"
+                    orientation="right"
+                    tick={{ fill: C.muted, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    domain={[0, 25]}
+                    width={28}
+                  />
+
+                  <Tooltip
+                    content={<RevenueTooltip />}
+                    cursor={{ stroke: "rgba(255,255,255,0.08)", strokeWidth: 1, strokeDasharray: "4 4" }}
+                  />
+
+                  <Area
+                    yAxisId="revenus"
+                    type="monotone"
+                    dataKey="revenus"
+                    stroke={C.success}
+                    strokeWidth={2}
+                    fill="url(#gradRevenus)"
+                    dot={false}
+                    activeDot={{ r: 5, fill: C.success, stroke: C.walnut, strokeWidth: 2 }}
+                  />
+
+                  <Area
+                    yAxisId="missions"
+                    type="monotone"
+                    dataKey="missions"
+                    stroke={C.electric}
+                    strokeWidth={2}
+                    fill="url(#gradMissions)"
+                    dot={false}
+                    activeDot={{ r: 5, fill: C.electric, stroke: C.walnut, strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         );
 
+      // ── Settings ──────────────────────────────────────────────────────────────
       case "settings":
         return (
           <div style={{ maxWidth: 480 }}>
             <h2 style={{ margin: "0 0 24px", fontSize: 16, fontWeight: 700, color: C.text }}>Paramètres du compte</h2>
             {[
-              { label: "Nom complet", value: user?.name,  type: "text" },
+              { label: "Nom complet", value: user?.name,  type: "text"  },
               { label: "Email",       value: user?.email, type: "email" },
-              { label: "Téléphone",   value: "",          type: "tel" },
+              { label: "Téléphone",   value: "",          type: "tel"   },
             ].map(field => (
               <div key={field.label} style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.mutedLt, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{field.label}</label>
@@ -416,7 +584,9 @@ export default function ArtisanDashboard() {
             ))}
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               style={{ all: "unset", cursor: "pointer", marginTop: 8, fontSize: 14, fontWeight: 600, color: "#fff", padding: "12px 28px", background: C.success, borderRadius: 10 }}
-            >Sauvegarder</motion.button>
+            >
+              Sauvegarder
+            </motion.button>
           </div>
         );
 
@@ -429,7 +599,10 @@ export default function ArtisanDashboard() {
       <Sidebar active={active} setActive={setActive} user={user} logout={logout} />
 
       <main style={{ flex: 1, padding: "32px 40px", overflowY: "auto" }}>
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: 32 }}>
+        <motion.div
+          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ marginBottom: 32 }}
+        >
           <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, letterSpacing: "-0.03em" }}>
             Bonjour, {user?.name?.split(" ")[0]} 🔧
           </h1>
