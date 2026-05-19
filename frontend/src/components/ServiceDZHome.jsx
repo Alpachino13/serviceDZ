@@ -193,7 +193,7 @@ export default function ServiceDZHome() {
     }
   };
 
-  const handleSearch = async (query) => {
+const handleSearch = async (query) => {
     if (!query?.trim()) return;
     setSearchQuery(query.trim());
     setIsSearching(true);
@@ -201,7 +201,8 @@ export default function ServiceDZHome() {
     setSearchError("");
     const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
     try {
-      const res  = await fetch(`${API}/api/recherche?q=${encodeURIComponent(query.trim())}`, {
+      // ✅ CORRIGÉ : On utilise /api/users/workers?query= au lieu de /api/recherche?q=
+      const res  = await fetch(`${API}/api/users/workers?query=${encodeURIComponent(query.trim())}`, {
         headers: { "ngrok-skip-browser-warning": "true" },
       });
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
