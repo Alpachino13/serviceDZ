@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { getToken, getStoredUser } from './hooks/useAuth';
 
-import ServiceDZHome    from './components/ServiceDZHome';
+import ServiceDZ    from './components/ServiceDZ';
 import LoginPage        from './components/LoginPage';
 import RoleSelection    from './pages/RoleSelection';
 import ClientDashboard  from './pages/ClientDashboard';
@@ -47,7 +47,7 @@ export default function App() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <Routes>
         {/* Publiques */}
-        <Route path="/"               element={<ServiceDZHome />} />
+        <Route path="/"               element={<ServiceDZ />} />
         <Route path="/login"          element={<LoginPage />} />
 
         {/* Profil artisan public */}
