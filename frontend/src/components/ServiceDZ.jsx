@@ -1,6 +1,6 @@
 // Ensure these imports are at the very top of ServiceDZ.jsx
 import { getStoredUser, getToken } from "../hooks/useAuth";
-import { authAPI } from "./api"; // Your connection to server.js
+import { authAPI } from "../api"; // Your connection to server.js
 import ClientDashboard from "./ClientDashboard";
 import ArtisanDashboard from "./ArtisanDashboard";
 import LoginPage from "./LoginPage";
