@@ -1,4 +1,11 @@
+import ClientDashboard from "./ClientDashboard";
+import ArtisanDashboard from "./ArtisanDashboard";
+import LoginPage from "./LoginPage";
+import RoleSelection from "./RoleSelection";
+import { useState, useEffect } from "react";
 import { useState, useEffect, useRef } from "react";
+import { getStoredUser, getToken } from "./useAuth"; // Handles reading user info from localStorage
+import { authAPI } from "./api";                   // Connects to your server.js auth routes
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');`;
 
@@ -591,7 +598,13 @@ function ArtisanCard({ artisan, onContact }) {
           <i className="ti ti-send" style={{ fontSize: 15 }}></i>
           Contacter
         </button>
-        <button className="sdz-btn-profile" title="Voir le profil">
+        
+        {/* 👇 Add the onClick right here! 👇 */}
+        <button 
+          className="sdz-btn-profile" 
+          title="Voir le profil"
+          onClick={() => onViewProfile(artisan._id || artisan.id)}
+        >
           <i className="ti ti-user" style={{ fontSize: 16 }}></i>
         </button>
       </div>
@@ -801,8 +814,10 @@ export default function ServiceDZ() {
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
   const toastTimer = useRef(null);
-
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'client-dashboard', 'artisan-dashboard', 'login'
+  const [viewingProfileId, setViewingProfileId] = useState(null);
   const unread = notifs.filter(n => n.unread).length;
+
 
   const filtered = ARTISANS.filter(a => {
     const matchCat = category === "all" || a.category === category;
@@ -810,6 +825,8 @@ export default function ServiceDZ() {
     const matchSearch = !q || a.name.toLowerCase().includes(q) || a.category.toLowerCase().includes(q) || a.region.toLowerCase().includes(q);
     return matchCat && matchSearch;
   });
+  
+  
 
   const showToast = (msg) => {
     setToast(msg);
@@ -832,6 +849,38 @@ export default function ServiceDZ() {
   };
 
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
+  
+  const handleAvatarClick = async () => {
+    const token = getToken();
+    const localUser = getStoredUser();
+
+    // Fallback 1: Not signed in? Route to login panel seamlessly
+    if (!token) {
+      setCurrentPage('login');
+      return;
+    }
+
+    try {
+      // Optional: Ask server.js directly if session is fresh
+      // const freshUser = await authAPI.me();
+      // const userRole = freshUser.role;
+
+      // Fast role resolution from your active local user session
+      const userRole = localUser?.role;
+
+      if (userRole === 'artisan') {
+        setCurrentPage('artisan-dashboard');
+      } else if (userRole === 'client') {
+        setCurrentPage('client-dashboard');
+      } else {
+        // Safe check if user registers but hasn't picked a role yet
+        setCurrentPage('role-selection');
+      }
+    } catch (error) {
+      console.error("Backend validation rejected session. Re-authenticating...", error);
+      setCurrentPage('login');
+    }
+  };
 
   return (
     <>
@@ -864,7 +913,18 @@ export default function ServiceDZ() {
               <i className="ti ti-bell" style={{ fontSize: 19 }}></i>
               {unread > 0 && <span className="sdz-badge">{unread}</span>}
             </button>
-            <div className="sdz-avatar">YM</div>
+            <div
+  className="sdz-avatar"
+  onClick={handleAvatarClick}
+  style={{ cursor: 'pointer' }}
+  title="Mon Espace"
+  >
+  {/* Dynamically generates initials from the server's session record if logged in */}
+  {getStoredUser() ?
+    getStoredUser().name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) 
+    : "YM"
+  }
+</div>
           </div>
         </nav>
 
@@ -892,30 +952,107 @@ export default function ServiceDZ() {
           ))}
         </div>
 
-        {/* GRID */}
-        <div className="sdz-grid-wrap">
-          <div className="sdz-grid-header">
-            <div className="sdz-grid-title">
-              {category === "all" ? "Tous les artisans" : category}
-            </div>
-            <span className="sdz-count">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
-          </div>
+{/* Inside your main layout container under the header/nav bar */}
+<div className="sdz-main-content">
 
-          {filtered.length === 0 ? (
-            <div className="sdz-empty">
-              <i className="ti ti-search-off"></i>
-              <h3>Aucun artisan trouvé</h3>
-              <p>Essayez de modifier votre recherche ou catégorie.</p>
+  {/* 1. HOME LANDING PAGE VIEW */}
+{/* 1. HOME LANDING PAGE VIEW */}
+        {currentPage === 'home' && (
+          <>
+            {/* HERO */}
+            <div className="sdz-hero">
+              <div className="sdz-hero-eyebrow">
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#2A8A5E", display: "inline-block" }}></span>
+                Tlemcen · {ARTISANS.filter(a => a.available).length} artisans disponibles maintenant
+              </div>
+              <h1>L'artisan qu'il vous faut,<br /><span>en quelques clics.</span></h1>
+              <p>Trouvez des professionnels vérifiés près de chez vous — plombiers, électriciens, peintres et plus encore.</p>
             </div>
-          ) : (
-            <div className="sdz-grid">
-              {filtered.map(a => (
-                <ArtisanCard key={a.id} artisan={a} onContact={setContactArtisan} />
+
+            {/* CATEGORIES */}
+            <div className="sdz-cats">
+              {CATEGORIES.map(c => (
+                <button
+                  key={c.id}
+                  className={`sdz-cat${category === c.id ? " active" : ""}`}
+                  onClick={() => setCategory(c.id)}
+                >
+                  <i className={`ti ${c.icon}`}></i>
+                  {c.label}
+                </button>
               ))}
             </div>
-          )}
-        </div>
 
+            {/* GRID */}
+            <div className="sdz-grid-wrap">
+              <div className="sdz-grid-header">
+                <div className="sdz-grid-title">
+                  {category === "all" ? "Tous les artisans" : category}
+                </div>
+                <span className="sdz-count">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="sdz-empty">
+                  <i className="ti ti-search-off"></i>
+                  <h3>Aucun artisan trouvé</h3>
+                  <p>Essayez de modifier votre recherche ou catégorie.</p>
+                </div>
+              ) : (
+                <div className="sdz-grid">
+                  {filtered.map(a => (
+                    <ArtisanCard 
+                      key={a.id} 
+                      artisan={a} 
+                      onContact={setContactArtisan}
+                      onViewProfile={(id) => {
+                        setViewingProfileId(id);
+                        setCurrentPage('artisan-profile');
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+ {/* 2. CLIENT DASHBOARD VIEW */}
+        {currentPage === 'client-dashboard' && (
+          <ClientDashboard 
+            user={getStoredUser()} 
+            setPage={setCurrentPage} 
+          />
+        )}
+
+        {/* 3. ARTISAN DASHBOARD VIEW */}
+        {currentPage === 'artisan-dashboard' && (
+          <ArtisanDashboard 
+            user={getStoredUser()} 
+            setPage={setCurrentPage} 
+          />
+        )}
+
+        {/* 4. LOGIN PAGE VIEW */}
+        {currentPage === 'login' && (
+          <LoginPage 
+            onAuth={(user) => {
+              // When login succeeds, immediately run the avatar click logic 
+              // to figure out which dashboard to send them to!
+              handleAvatarClick(); 
+            }} 
+            initTab="login"
+          />
+        )}
+
+        {/* 5. ROLE SELECTION VIEW */}
+        {currentPage === 'role-selection' && (
+          <RoleSelection 
+            onRoleConfirmed={() => handleAvatarClick()} 
+          />
+        )}
+
+</div>
         {/* NOTIFICATION PANEL */}
         {showNotif && (
           <NotifPanel
