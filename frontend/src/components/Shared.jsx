@@ -2,7 +2,25 @@ import { useState, useRef, useEffect } from 'react';
 
 // ─── Design system CSS (injected once by App) ────────────────────────────────
 export const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');`;
-
+// Add this to Shared.jsx
+export function Stars({ rating, size = 14 }) {
+  // Using the C object defined above
+  return (
+    <div style={{ display: "flex", gap: 2 }}>
+      {[1, 2, 3, 4, 5].map(s => (
+        <span 
+          key={s} 
+          style={{ 
+            fontSize: size, 
+            color: s <= Math.round(rating) ? C.warning : C.surfaceLt 
+          }}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 export const GLOBAL_CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
