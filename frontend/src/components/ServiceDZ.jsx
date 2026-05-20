@@ -1,4 +1,5 @@
 // Ensure these imports are at the very top of ServiceDZ.jsx
+import { useState, useEffect } from "react"; // Ensure useState is imported here
 import { getStoredUser, getToken } from "../hooks/useAuth";
 import { authAPI } from "../api"; // Your connection to server.js
 import ClientDashboard from "../pages/ClientDashboard";
@@ -879,6 +880,10 @@ export default function ServiceDZ() {
       console.error("Backend validation rejected session. Re-authenticating...", error);
       setCurrentPage('login');
     }
+  };
+  const handleViewProfile = (id) => {
+    setViewingProfileId(id);
+    setCurrentPage('artisan-profile');
   };
 
   return (
