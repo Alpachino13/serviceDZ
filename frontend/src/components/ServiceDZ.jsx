@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+// Ensure these imports are at the very top of ServiceDZ.jsx
 import { getStoredUser, getToken } from "./useAuth";
-import { authAPI } from "./api";
+import { authAPI } from "./api"; // Your connection to server.js
 import ClientDashboard from "./ClientDashboard";
 import ArtisanDashboard from "./ArtisanDashboard";
 import LoginPage from "./LoginPage";
 import RoleSelection from "./RoleSelection";
-import ArtisanProfile from "./ArtisanProfile"
+import ArtisanProfile from "./ArtisanProfile";
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');`;
 
 const CSS = `
