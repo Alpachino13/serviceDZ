@@ -30,15 +30,45 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--sand);color:var
   color:var(--text);outline:none;transition:border-color 180ms,box-shadow 180ms}
 .nav-search:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(12,94,71,0.1)}
 .nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.nav-link{padding:7px 14px;border-radius:9px;font-size:14px;font-weight:500;color:var(--text-mid);
-  cursor:pointer;transition:background 150ms,color 150ms;border:none;background:none;
+.nav-link{padding:0;border:none;background:none;cursor:pointer;
   font-family:'DM Sans',sans-serif}
-.nav-link:hover{background:var(--sand-dark);color:var(--text)}
-.nav-btn-primary{padding:7px 16px;border-radius:9px;font-size:14px;font-weight:600;
-  color:white;background:var(--primary);cursor:pointer;border:none;
-  font-family:'DM Sans',sans-serif;transition:background 150ms,transform 120ms}
-.nav-btn-primary:hover{background:var(--primary-mid)}
-.nav-btn-primary:active{transform:scale(0.97)}
+/* ── LOGIN button — outline style ── */
+.nav-btn-login{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 18px;height:37px;
+  border-radius:9px;
+  border:1.5px solid var(--border);
+  background:var(--card);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  color:var(--text-mid);
+  cursor:pointer;
+  transition:border-color 160ms,color 160ms,background 160ms,transform 120ms;
+  white-space:nowrap;
+}
+.nav-btn-login:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+  background:var(--primary-light);
+}
+.nav-btn-login:active{transform:scale(0.97)}
+/* ── SIGNUP button — solid primary ── */
+.nav-btn-primary{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 18px;height:37px;
+  border-radius:9px;
+  border:none;
+  background:var(--primary);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  color:white;
+  cursor:pointer;
+  transition:background 150ms,transform 120ms,box-shadow 150ms;
+  white-space:nowrap;
+  box-shadow:0 1px 4px rgba(12,94,71,0.25);
+}
+.nav-btn-primary:hover{background:var(--primary-mid);box-shadow:0 3px 10px rgba(12,94,71,0.3)}
+.nav-btn-primary:active{transform:scale(0.97);box-shadow:none}
 
 /* ── NOTIFICATION BELL ── */
 .notif-btn{position:relative;width:37px;height:37px;border:1px solid var(--border);
