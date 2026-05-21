@@ -271,7 +271,7 @@ function RequestModal({ artisan, onClose, onSuccess }) {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function ArtisanProfile({ setPage }) {
+export default function ArtisanProfile() {
   const { id }        = useParams();
 // (duplicate navigate removed)
   const currentUser   = getStoredUser();
@@ -283,12 +283,6 @@ export default function ArtisanProfile({ setPage }) {
   const [showModal, setShowModal] = useState(false);
   const [success, setSuccess]     = useState("");
   const [notFound, setNotFound]   = useState(false);
-
-  const navigate = (path) => {
-    if (path === -1) setPage('home');
-    else setPage(path.replace('/', '')); // e.g., converts "/login" to "login"
-  };
-
 
   useEffect(() => {
     const load = async () => {

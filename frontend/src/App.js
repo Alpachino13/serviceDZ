@@ -37,7 +37,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<ServiceDZ />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/artisan/:id" element={<ArtisanProfile setPage={setPage} />} />
+        <Route path="/artisan/:id" element={<ArtisanProfile />} />
         <Route path="/role" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
         <Route path="/dashboard" element={<RoleRoute />} />
         <Route path="/dashboard/client" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
