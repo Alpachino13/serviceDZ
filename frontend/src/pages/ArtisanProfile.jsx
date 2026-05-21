@@ -271,7 +271,7 @@ function RequestModal({ artisan, onClose, onSuccess }) {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function ArtisanProfile() {
+export default function ArtisanProfile({ setPage }) {
   const { id }        = useParams();
 // (duplicate navigate removed)
   const currentUser   = getStoredUser();
