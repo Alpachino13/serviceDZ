@@ -603,7 +603,7 @@ function ArtisanCard({ artisan, onContact }) {
         <button 
           className="sdz-btn-profile" 
           title="Voir le profil"
-          onClick={() => (onViewProfile || function(){})(artisan._id || artisan.id)}
+          onClick={() => {}}
         >
           <i className="ti ti-user" style={{ fontSize: 16 }}></i>
         </button>

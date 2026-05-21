@@ -283,6 +283,7 @@ export default function ArtisanProfile() {
   const [showModal, setShowModal] = useState(false);
   const [success, setSuccess]     = useState("");
   const [notFound, setNotFound]   = useState(false);
+
   const navigate = (path) => {
     if (path === -1) setPage('home');
     else setPage(path.replace('/', '')); // e.g., converts "/login" to "login"
