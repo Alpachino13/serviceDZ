@@ -1,31 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 
 // ─── Design system CSS (injected once by App) ────────────────────────────────
-const C = {
-  warning: "#D4572A",
-  surfaceLt: "#EBE7DF",
-  primary: "#0C5E47"
-};
 export const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');`;
-// Add this to Shared.jsx
-export function Stars({ rating, size = 14 }) {
-  // Using the C object defined above
-  return (
-    <div style={{ display: "flex", gap: 2 }}>
-      {[1, 2, 3, 4, 5].map(s => (
-        <span 
-          key={s} 
-          style={{ 
-            fontSize: size, 
-            color: s <= Math.round(rating) ? C.warning : C.surfaceLt 
-          }}
-        >
-          ★
-        </span>
-      ))}
-    </div>
-  );
-}
+
 export const GLOBAL_CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -227,7 +204,22 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--sand);color:var
 .toast-icon{width:22px;height:22px;border-radius:50%;background:#2A8A5E;
   display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 
-/* ── SPINNER ── */
+/* ── DASHBOARD SHORTCUT button (logged-in state) ── */
+.nav-dash-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 14px;height:37px;
+  border-radius:9px;
+  border:1.5px solid var(--primary);
+  background:var(--primary-light);
+  font-family:'DM Sans',sans-serif;
+  font-size:13.5px;font-weight:600;
+  color:var(--primary);
+  cursor:pointer;
+  transition:background 150ms,border-color 150ms,transform 120ms;
+  white-space:nowrap;
+}
+.nav-dash-btn:hover{background:var(--primary);color:white}
+.nav-dash-btn:active{transform:scale(0.97)}
 .spinner{width:17px;height:17px;border:2.5px solid rgba(255,255,255,0.3);
   border-top-color:white;border-radius:50%;animation:spin 0.65s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -356,7 +348,8 @@ export function Nav({ page, setPage, user, notifs, onBell, onLogout, search, set
             </button>
 
             <div style={{position:'relative'}} ref={menuRef}>
-              <div className="user-avatar" onClick={() => setMenuOpen(s => !s)}>{initials}</div>
+              <div className="user-avatar" onClick={() => setMenuOpen(s => !s)}
+                title="Mon compte">{initials}</div>
               {menuOpen && (
                 <div className="user-menu">
                   <div className="user-menu-header">
@@ -376,11 +369,24 @@ export function Nav({ page, setPage, user, notifs, onBell, onLogout, search, set
                 </div>
               )}
             </div>
+
+            {/* Direct dashboard shortcut button */}
+            <button className="nav-dash-btn" onClick={() => setPage('dashboard')}
+              title="Tableau de bord">
+              <i className="ti ti-layout-dashboard" style={{fontSize:16}} />
+              <span>Dashboard</span>
+            </button>
           </>
         ) : (
           <>
-            <button className="nav-link" onClick={() => setPage('login')}>Connexion</button>
-            <button className="nav-btn-primary" onClick={() => setPage('register')}>Inscription</button>
+            <button className="nav-btn-login" onClick={() => setPage('login')}>
+              <i className="ti ti-login" style={{fontSize:15}} />
+              Connexion
+            </button>
+            <button className="nav-btn-primary" onClick={() => setPage('register')}>
+              <i className="ti ti-user-plus" style={{fontSize:15}} />
+              S'inscrire
+            </button>
           </>
         )}
       </div>

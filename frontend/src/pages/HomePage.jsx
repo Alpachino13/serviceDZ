@@ -186,16 +186,23 @@ export default function HomePage({ user, setPage, onContact, onRepairSubmit }) {
   const [loading, setLoading]   = useState(true);
   const [category, setCategory] = useState('all');
   const [contactTarget, setContactTarget] = useState(null);
+  const [demoMode, setDemoMode] = useState(false);
 
-  // Load artisans from API, fall back to mock data
+  // Load artisans from YOUR backend API
+  // → GET ${REACT_APP_API_URL}/api/users/workers
+  // Falls back to mock data only if the server is unreachable
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const data = await workersAPI.list({ region: 'tlemcen' });
-        setArtisans(Array.isArray(data) ? data : MOCK_ARTISANS);
+        const data = await workersAPI.list();          // no region filter = all artisans
+        const list = Array.isArray(data) ? data : [];
+        setArtisans(list.length > 0 ? list : MOCK_ARTISANS);
       } catch {
+        // Backend unreachable → show mock cards with a warning
         setArtisans(MOCK_ARTISANS);
+        setDemoMode(true);
+        console.warn('[ServiceDZ] Could not reach backend — showing demo data.');
       } finally {
         setLoading(false);
       }
@@ -237,6 +244,26 @@ export default function HomePage({ user, setPage, onContact, onRepairSubmit }) {
         <h1>L'artisan qu'il vous faut,<br /><span>en quelques clics.</span></h1>
         <p>Trouvez des professionnels vérifiés près de chez vous — plombiers, électriciens, peintres et plus encore.</p>
       </div>
+
+      {/* Demo mode warning */}
+      {demoMode && (
+        <div style={{
+          margin: '0 28px 16px', padding: '10px 16px',
+          background: '#FFF8E8', border: '1px solid #F0D08A',
+          borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10,
+          fontSize: 13, color: '#9A7012', maxWidth: 1044, marginLeft: 'auto', marginRight: 'auto'
+        }}>
+          <i className="ti ti-alert-triangle" style={{fontSize:16, flexShrink:0}} />
+          <span>
+            <strong>Mode démo</strong> — Impossible de joindre le backend.
+            Vérifiez que <code style={{background:'#FAF0D0',padding:'1px 5px',borderRadius:4}}>REACT_APP_API_URL</code> est configuré dans Vercel.
+          </span>
+          <button onClick={() => setDemoMode(false)} style={{
+            marginLeft:'auto', background:'none', border:'none',
+            cursor:'pointer', fontSize:16, color:'#9A7012'
+          }}>✕</button>
+        </div>
+      )}
 
       {/* Categories */}
       <div className="cats">

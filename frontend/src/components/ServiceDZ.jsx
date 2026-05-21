@@ -528,7 +528,7 @@ const INIT_NOTIFS = [
   { id: 4, type: "demande", title: "Demande acceptée", desc: "Sofiane Hadj a accepté votre demande d'intervention.", time: "Il y a 2 jours", unread: false },
 ];
 
-function Stars({ rating }) {
+function Stars({ rating , onViewProfile} ) {
   return (
     <div className="sdz-stars">
       {[1,2,3,4,5].map(i => (
@@ -603,7 +603,7 @@ function ArtisanCard({ artisan, onContact }) {
         <button 
           className="sdz-btn-profile" 
           title="Voir le profil"
-          onClick={() => onViewProfile(artisan._id || artisan.id)}
+          onClick={() => (onViewProfile || function(){})(artisan._id || artisan.id)}
         >
           <i className="ti ti-user" style={{ fontSize: 16 }}></i>
         </button>
