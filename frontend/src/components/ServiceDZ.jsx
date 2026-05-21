@@ -932,30 +932,6 @@ export default function ServiceDZ() {
           </div>
         </nav>
 
-        {/* HERO */}
-        <div className="sdz-hero">
-          <div className="sdz-hero-eyebrow">
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#2A8A5E", display: "inline-block" }}></span>
-            Tlemcen · {ARTISANS.filter(a => a.available).length} artisans disponibles maintenant
-          </div>
-          <h1>L'artisan qu'il vous faut,<br /><span>en quelques clics.</span></h1>
-          <p>Trouvez des professionnels vérifiés près de chez vous — plombiers, électriciens, peintres et plus encore.</p>
-        </div>
-
-        {/* CATEGORIES */}
-        <div className="sdz-cats">
-          {CATEGORIES.map(c => (
-            <button
-              key={c.id}
-              className={`sdz-cat${category === c.id ? " active" : ""}`}
-              onClick={() => setCategory(c.id)}
-            >
-              <i className={`ti ${c.icon}`}></i>
-              {c.label}
-            </button>
-          ))}
-        </div>
-
 {/* Inside your main layout container under the header/nav bar */}
 <div className="sdz-main-content">
 
