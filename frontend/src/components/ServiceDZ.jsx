@@ -7,6 +7,8 @@ import ArtisanDashboard from "../pages/ArtisanDashboard";
 import LoginPage from "./LoginPage";
 import RoleSelection from "../pages/RoleSelection";
 import ArtisanProfile from "../pages/ArtisanProfile";
+import { useNavigate } from 'react-router-dom'; // already imported at the top
+
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');`;
 
 const CSS = `
@@ -817,7 +819,7 @@ export default function ServiceDZ() {
   const [currentPage, setCurrentPage] = useState('home'); // 'home', 'client-dashboard', 'artisan-dashboard', 'login'
   const [viewingProfileId, setViewingProfileId] = useState(null);
   const unread = notifs.filter(n => n.unread).length;
-
+  const navigate = useNavigate();
 
   const filtered = ARTISANS.filter(a => {
     const matchCat = category === "all" || a.category === category;
@@ -893,10 +895,10 @@ export default function ServiceDZ() {
       <div className="sdz-app">
         {/* NAV */}
         <nav className="sdz-nav">
-          <div className="sdz-logo">
-            <i className="ti ti-tool" style={{ fontSize: 20 }}></i>
-            Service<span className="sdz-logo-dot">DZ</span>
-          </div>
+          <div className="sdz-logo" onClick={() => navigate('/')} style={{cursor:'pointer'}}>
+  <i className="ti ti-tool" />
+  Service<span className="sdz-logo-dot">DZ</span>
+</div>
 
           <div className="sdz-search-wrap">
             <i className="ti ti-search"></i>
