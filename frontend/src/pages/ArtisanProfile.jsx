@@ -276,7 +276,7 @@ export default function ArtisanProfile() {
 // (duplicate navigate removed)
   const currentUser   = getStoredUser();
   const isClient      = currentUser?.role === "client";
-
+    const navigate   = useNavigate();    // ← ADD THIS LINE
   const [artisan, setArtisan]     = useState(null);
   const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
